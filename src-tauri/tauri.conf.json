@@ -1,25 +1,9 @@
 {
-  "$schema": "https://schema.tauri.app/config/2",
-  "productName": "spotless",
-  "version": "0.1.0",
-  "identifier": "com.spotless.app",
   "build": {
-    "beforeDevCommand": "bun run dev",
-    "devUrl": "http://localhost:1420",
-    "beforeBuildCommand": "bun run build",
-    "frontendDist": "../dist"
-  },
-  "app": {
-    "windows": [
-      {
-        "title": "spotless",
-        "width": 800,
-        "height": 600
-      }
-    ],
-    "security": {
-      "csp": null
-    }
+    "beforeDevCommand": "bun dev",
+    "beforeBuildCommand": "bun build",
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:1420"
   },
   "bundle": {
     "active": true,
@@ -31,5 +15,26 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ]
+  },
+  "productName": "tauri-macos-spotlight-app",
+  "version": "0.2.0",
+  "identifier": "com.tauri.spotlight",
+  "plugins": {},
+  "app": {
+    "windows": [
+      {
+        "fullscreen": false,
+        "height": 250,
+        "width": 800,
+        "resizable": false,
+        "decorations": false,
+        "center": true,
+        "visible": false
+      }
+    ],
+    "security": {
+      "csp": null
+    },
+    "macOSPrivateApi": true
   }
 }
