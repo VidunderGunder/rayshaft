@@ -19,6 +19,8 @@ thiserror = "1.0.63"
 tauri-nspanel = { git = "https://github.com/ahkohd/tauri-nspanel", branch = "v2" }
 monitor = { git = "https://github.com/ahkohd/tauri-toolkit", branch = "v2" }
 
+plist = "1.7.0"
+serde = "1.0.217"
 
 [features]
 # by default Tauri runs in production mode

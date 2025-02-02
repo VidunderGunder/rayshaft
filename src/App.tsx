@@ -1,7 +1,9 @@
 import { useEscape } from "@/hooks/useEscape";
+import { handleLaunch, useApps } from "./hooks/useApps";
 
 export function App() {
 	useEscape();
+	const apps = useApps();
 
 	return (
 		<div className="flex size-full items-start justify-center">
@@ -16,6 +18,22 @@ export function App() {
 					🦔💨
 				</span>
 			</div>
+			<ul className="flex flex-col gap-2">
+				{apps.map((app) => {
+					return (
+						<li
+							key={app.bundle_id}
+							className="cursor-pointer rounded p-2 hover:bg-gray-700"
+							onClick={() => handleLaunch(app.path)}
+							onKeyDown={(e) => {
+								if (e.key === "Enter") handleLaunch(app.path);
+							}}
+						>
+							{app.name} {app.version ? `(${app.version})` : ""}
+						</li>
+					);
+				})}
+			</ul>
 		</div>
 	);
 }
