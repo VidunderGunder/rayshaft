@@ -7,7 +7,6 @@ import Fuse from "fuse.js";
 
 export function App() {
 	const [search, setSearch] = useState("");
-
 	const resetSearch = useCallback(function resetSearch() {
 		setSearch("");
 	}, []);
@@ -22,14 +21,12 @@ export function App() {
 	);
 
 	useEscape({ onEscape: resetSearch });
-	const apps = useApps();
 
+	const apps = useApps();
 	const fuse = new Fuse(apps, {
 		keys: ["name"],
 	});
-
 	const results = fuse.search(search);
-
 	const showResults = results.length > 0;
 
 	return (
