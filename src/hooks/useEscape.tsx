@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { useCallback, useEffect } from "react";
 
-const useEscape = () => {
+export function useEscape() {
 	const handleEscape = useCallback((event: KeyboardEvent) => {
 		if (event.key === "Escape") {
 			event.preventDefault();
@@ -15,6 +15,4 @@ const useEscape = () => {
 
 		return () => window.removeEventListener("keydown", handleEscape);
 	}, [handleEscape]);
-};
-
-export default useEscape;
+}
