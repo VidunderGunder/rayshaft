@@ -14,3 +14,14 @@
 input:focus-visible {
   outline: none;
 }
+
+html,
+body,
+#root {
+  /* Remove height if you want real html scroll */
+  height: 100%;
+  width: 100%;
+  min-width: 100%;
+  min-height: 100%;
+  max-width: 100vw;
+}
