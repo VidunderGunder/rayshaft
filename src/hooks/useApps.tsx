@@ -5,7 +5,7 @@ import { invoke } from "@tauri-apps/api/core";
 // 	//
 // };
 
-type AppInfo = {
+export type AppInfo = {
 	name: string;
 	bundle_id?: string;
 	version?: string;
@@ -24,7 +24,7 @@ export function useApps(
 	return apps;
 }
 
-export function handleLaunch(appPath?: string) {
+export function launchApp(appPath?: string) {
 	if (appPath) {
 		invoke("launch_app", { appPath })
 			.then(() => console.log("App launched"))

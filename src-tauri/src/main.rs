@@ -16,8 +16,7 @@ pub const SPOTLIGHT_LABEL: &str = "main";
 
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![command::list_installed_apps, command::launch_app, command::show, command::hide])
-        .invoke_handler(tauri::generate_handler![command::show, command::hide])
+        .invoke_handler(tauri::generate_handler![apps::list_installed_apps, apps::launch_app, command::show, command::hide])
         .plugin(tauri_nspanel::init())
         .setup(move |app| {
             // Set activation poicy to Accessory to prevent the app icon from showing on the dock

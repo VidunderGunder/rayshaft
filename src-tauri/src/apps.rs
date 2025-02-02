@@ -1,6 +1,7 @@
 use std::process::Command;
 use plist::Value;
 use serde::Serialize;
+use std::path::Path;
 
 #[derive(Serialize)]
 pub struct AppInfo {
@@ -27,8 +28,6 @@ pub fn list_installed_apps() -> Result<Vec<AppInfo>, String> {
   let plist = Value::from_reader_xml(xml_data.as_bytes())
     .map_err(|e| format!("Failed to parse plist: {}", e))?;
   
-  // Navigate to the array of application dictionaries.
-  // The structure of system_profiler's output is an array of dictionaries.
   let mut apps = Vec::new();
   if let Value::Array(items) = plist {
     // Each item is a dictionary that has a "_items" key containing the list.
@@ -37,12 +36,20 @@ pub fn list_installed_apps() -> Result<Vec<AppInfo>, String> {
         if let Some(Value::Array(app_items)) = dict.get("_items") {
           for app_item in app_items {
             if let Value::Dictionary(app_dict) = app_item {
-              // Extract fields: "name", "bundle_identifier", "version", "path"
-              let name = app_dict.get("name")
-                .and_then(|v| v.as_string())
-                .unwrap_or("Unknown")
-                .to_string();
-              
+              // Try to get the app name directly
+              let name = if let Some(name_val) = app_dict.get("name").and_then(|v| v.as_string()) {
+                name_val.to_string()
+              } else if let Some(path_val) = app_dict.get("path").and_then(|v| v.as_string()) {
+                // Fallback: derive name from the filename of the path (without extension)
+                Path::new(path_val)
+                  .file_stem()
+                  .and_then(|os_str| os_str.to_str())
+                  .unwrap_or("Unknown")
+                  .to_string()
+              } else {
+                "Unknown".to_string()
+              };
+
               let bundle_id = app_dict.get("bundle_identifier")
                 .and_then(|v| v.as_string())
                 .map(|s| s.to_string());
