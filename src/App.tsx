@@ -1,4 +1,4 @@
-import useEscape from "./hooks/useEscape";
+import useEscape from "@/hooks/useEscape";
 
 export function App() {
 	useEscape();
