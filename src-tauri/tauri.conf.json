@@ -1,41 +1,41 @@
 {
-  "build": {
-    "beforeDevCommand": "bun dev",
-    "beforeBuildCommand": "bun build",
-    "frontendDist": "../dist",
-    "devUrl": "http://localhost:1420"
-  },
-  "bundle": {
-    "active": true,
-    "targets": "all",
-    "icon": [
-      "icons/32x32.png",
-      "icons/128x128.png",
-      "icons/128x128@2x.png",
-      "icons/icon.icns",
-      "icons/icon.ico"
-    ]
-  },
-  "productName": "tauri-macos-spotlight-app",
-  "version": "0.2.0",
-  "identifier": "com.tauri.spotlight",
-  "plugins": {},
-  "app": {
-    "windows": [
-      {
-        "fullscreen": false,
-        "height": 250,
-        "width": 800,
-        "resizable": false,
-        "decorations": false,
-        "center": true,
-        "visible": false,
-        "transparent": true
-      }
-    ],
-    "security": {
-      "csp": null
-    },
-    "macOSPrivateApi": true
-  }
+	"build": {
+		"beforeDevCommand": "bun dev",
+		"beforeBuildCommand": "bun build",
+		"frontendDist": "../dist",
+		"devUrl": "http://localhost:1420"
+	},
+	"bundle": {
+		"active": true,
+		"targets": "all",
+		"icon": [
+			"icons/32x32.png",
+			"icons/128x128.png",
+			"icons/128x128@2x.png",
+			"icons/icon.icns",
+			"icons/icon.ico"
+		]
+	},
+	"productName": "tauri-macos-spotlight-app",
+	"version": "0.2.0",
+	"identifier": "com.tauri.spotlight",
+	"plugins": {},
+	"app": {
+		"windows": [
+			{
+				"fullscreen": false,
+				"height": 250,
+				"width": 800,
+				"resizable": false,
+				"decorations": false,
+				"center": true,
+				"visible": false,
+				"transparent": true
+			}
+		],
+		"security": {
+			"csp": null
+		},
+		"macOSPrivateApi": true
+	}
 }
