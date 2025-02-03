@@ -1,6 +1,6 @@
 {
 	"build": {
-		"beforeDevCommand": "bun dev",
+		"beforeDevCommand": "bun dev:vite",
 		"beforeBuildCommand": "bun build",
 		"frontendDist": "../dist",
 		"devUrl": "http://localhost:1420"
