@@ -10,16 +10,16 @@ use window::WebviewWindowExt;
 
 mod command;
 mod window;
-mod apps;
+mod installed_apps;
 
 pub const SPOTLIGHT_LABEL: &str = "main";
 
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![apps::list_installed_apps, apps::launch_app, command::show, command::hide])
+        .invoke_handler(tauri::generate_handler![installed_apps::list_installed_apps, installed_apps::launch_app, command::show, command::hide])
         .plugin(tauri_nspanel::init())
         .setup(move |app| {
-            // Set activation poicy to Accessory to prevent the app icon from showing on the dock
+            // Set activation policy to Accessory to prevent the app icon from showing on the dock
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
             let handle = app.app_handle();

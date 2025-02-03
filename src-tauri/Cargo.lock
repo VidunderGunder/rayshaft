@@ -2618,6 +2618,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "20675572f6f24e9e76ef639bc5552774ed45f1c30e2951e1e99c59888861c539"
 
 [[package]]
+name = "rayshaft"
+version = "0.2.0"
+dependencies = [
+ "monitor",
+ "plist",
+ "serde",
+ "tauri",
+ "tauri-build",
+ "tauri-nspanel",
+ "tauri-plugin-global-shortcut",
+ "thiserror 2.0.11",
+]
+
+[[package]]
 name = "redox_syscall"
 version = "0.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3375,20 +3389,6 @@ dependencies = [
  "url",
  "uuid",
  "walkdir",
-]
-
-[[package]]
-name = "tauri-macos-spotlight-app"
-version = "0.2.0"
-dependencies = [
- "monitor",
- "plist",
- "serde",
- "tauri",
- "tauri-build",
- "tauri-nspanel",
- "tauri-plugin-global-shortcut",
- "thiserror 2.0.11",
 ]
 
 [[package]]

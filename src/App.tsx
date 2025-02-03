@@ -42,7 +42,7 @@ export function App() {
 						setSearch(value);
 					}}
 					className={cn(
-						"w-full rounded-2xl bg-gray-950/50 px-3.5 py-3 text-white",
+						"w-full rounded-2xl bg-gray-900/90 px-3.5 py-3 text-white",
 						showResults ? "rounded-b-none" : "",
 					)}
 				/>
@@ -51,7 +51,7 @@ export function App() {
 				</span>
 			</div>
 			{showResults && (
-				<div className="max-h-[200px] overflow-y-scroll rounded-b-2xl bg-gray-950/50 text-white">
+				<div className="max-h-[200px] overflow-y-scroll rounded-b-2xl bg-gray-900/90 text-white">
 					<ul className="flex flex-col gap-2">
 						{results.map(({ item: app }) => {
 							return (

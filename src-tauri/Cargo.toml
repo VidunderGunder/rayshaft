@@ -1,5 +1,5 @@
 [package]
-name = "tauri-macos-spotlight-app"
+name = "rayshaft"
 version = "0.2.0"
 description = "A Tauri macOS spotlight app"
 authors = ["Victor Aremu <me@victorare.mu>"]
