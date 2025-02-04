@@ -4,13 +4,12 @@
 )]
 
 use tauri::{Listener, Manager};
-use tauri_nspanel::ManagerExt;
-use tauri_plugin_global_shortcut::{Code, Modifiers, Shortcut, ShortcutState};
 use window::WebviewWindowExt;
 
 mod command;
 mod window;
 mod installed_apps;
+mod hotkeys;
 
 pub const SPOTLIGHT_LABEL: &str = "main";
 
@@ -40,30 +39,7 @@ fn main() {
 
             Ok(())
         })
-        // Register a global shortcut (⌘+K) to toggle the visibility of the spotlight panel
-        .plugin(
-            tauri_plugin_global_shortcut::Builder::new()
-            .with_shortcut(Shortcut::new(Some(Modifiers::SUPER | Modifiers::ALT), Code::KeyK))
-                .unwrap()
-                .with_handler(|app, shortcut, event| {
-                    if event.state == ShortcutState::Pressed
-                        && shortcut.matches(Modifiers::SUPER | Modifiers::ALT, Code::KeyK)
-                    {
-                        let window = app.get_webview_window(SPOTLIGHT_LABEL).unwrap();
-
-                        let panel = app.get_webview_panel(SPOTLIGHT_LABEL).unwrap();
-
-                        if panel.is_visible() {
-                            panel.order_out(None);
-                        } else {
-                            window.center_at_cursor_monitor().unwrap();
-
-                            panel.show();
-                        }
-                    }
-                })
-                .build(),
-        )
+        .plugin(hotkeys::build_hotkey_plugin())
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

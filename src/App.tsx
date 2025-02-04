@@ -4,6 +4,9 @@ import { useCallback, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { cn } from "./styles/utils";
 import Fuse from "fuse.js";
+import { ScrollArea } from "@/components/shadcn/scroll-area";
+import { Keyboard } from "./components/Keyboard";
+import type { KeyboardKey, Modifier } from "./types/keyboard";
 
 export function App() {
 	const [search, setSearch] = useState("");
@@ -46,29 +49,58 @@ export function App() {
 						showResults ? "rounded-b-none" : "",
 					)}
 				/>
-				<span role="img" className="absolute right-4">
-					🦔💨
-				</span>
+				{/* <span role="img" className="absolute right-4">
+					🦔
+				</span> */}
 			</div>
 			{showResults && (
-				<div className="max-h-[200px] overflow-y-scroll rounded-b-2xl bg-gray-900/90 text-white">
+				<ScrollArea className="max-h-[200px] rounded-b-2xl bg-gray-900/90 text-white">
 					<ul className="flex flex-col gap-2">
-						{results.map(({ item: app }) => {
+						{results.map(({ item }) => {
+							const itemShortcut: {
+								modifiers: Modifier[];
+								letters: KeyboardKey[];
+							} = {
+								modifiers: [],
+								letters: [],
+							};
+							if (item.name === "Notes") {
+								itemShortcut.modifiers = ["Control", "Alt", "Meta"];
+								itemShortcut.letters = ["KeyN"];
+							}
 							return (
 								<li
-									key={app.path}
+									key={item.path}
 									className="cursor-pointer rounded px-3.5 py-3 hover:bg-gray-700"
-									onClick={() => handleLaunch(app.path)}
+									onClick={() => handleLaunch(item.path)}
 									onKeyDown={(e) => {
-										if (e.key === "Enter") handleLaunch(app.path);
+										if (e.key === "Enter") handleLaunch(item.path);
 									}}
 								>
-									{app.name}
+									<div className="flex justify-between">
+										<div>{item.name}</div>
+										<div className="flex gap-0.5">
+											{itemShortcut?.modifiers.map((modifier) => {
+												return (
+													<Keyboard
+														interactive
+														code={modifier}
+														key={modifier}
+													/>
+												);
+											})}
+											{itemShortcut?.letters.map((letter) => {
+												return (
+													<Keyboard interactive code={letter} key={letter} />
+												);
+											})}
+										</div>
+									</div>
 								</li>
 							);
 						})}
 					</ul>
-				</div>
+				</ScrollArea>
 			)}
 		</div>
 	);
