@@ -13,6 +13,7 @@
 	"dependencies": {
 		"@mantine/hooks": "^7.16.2",
 		"@radix-ui/react-scroll-area": "^1.2.2",
+		"@radix-ui/react-separator": "^1.1.2",
 		"@tailwindcss/vite": "^4.0.3",
 		"@tauri-apps/api": "2.2.0",
 		"clsx": "^2.1.1",
@@ -21,6 +22,7 @@
 		"path": "^0.12.7",
 		"react": "^19.0.0",
 		"react-dom": "^19.0.0",
+		"react-focus-lock": "^2.13.5",
 		"react-virtuoso": "^4.12.3",
 		"tailwind-merge": "^3.0.1",
 		"tailwindcss": "^4.0.3"
