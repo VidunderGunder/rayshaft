@@ -1,10 +1,9 @@
 import { useEscape } from "@/hooks/useEscape";
 import { launchApp, useApps } from "./hooks/useApps";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { cn } from "./styles/utils";
 import Fuse from "fuse.js";
-// import { ScrollArea } from "@/components/shadcn/scroll-area";
 import { Keyboard } from "./components/Keyboard";
 import type { KeyboardKey, Modifier } from "./types/keyboard";
 import { useAtom } from "jotai";
@@ -12,6 +11,7 @@ import { indexAtom, searchAtom } from "./jotai";
 import { useResetAtom } from "jotai/utils";
 import { getHotkeyHandler } from "@mantine/hooks";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
+import { ScrollArea } from "./components/shadcn/scroll-area";
 
 export function App() {
 	const [search, setSearch] = useAtom(searchAtom);
@@ -65,12 +65,6 @@ export function App() {
 		});
 	}
 
-	// useHotkeys([
-	// 	["ArrowDown", setIndexNext],
-	// 	["ArrowUp", setIndexPrevious],
-	// 	["Enter", () => launchApp(current.item.path)],
-	// ]);
-
 	useEffect(() => {
 		if (search === "") resetIndex();
 	}, [search, resetIndex]);
@@ -92,20 +86,20 @@ export function App() {
 					onKeyDown={getHotkeyHandler([
 						["ArrowDown", setIndexNext],
 						["ArrowUp", setIndexPrevious],
-						["Enter", () => launchApp(current.item.path)],
+						["Enter", () => handleLaunch(current.item.path)],
 					])}
 					className={cn(
 						"w-full rounded-2xl bg-gray-900/90 px-3.5 py-3 text-white",
 						showResults ? "rounded-b-none" : "",
 					)}
 				/>
-				{/* <span role="img" className="absolute right-4">
-					🦔💨
-				</span> */}
 			</div>
 			{showResults && (
 				<Virtuoso
 					className="rounded-b-2xl bg-gray-900/90 text-white"
+					style={{
+						height: 48 * 4,
+					}}
 					ref={virtuoso}
 					data={results}
 					itemContent={(i, result) => {
@@ -123,12 +117,14 @@ export function App() {
 						}
 						const isFocused = i === index;
 						return (
-							<div
+							<button
+								type="button"
 								key={item.path}
 								className={cn(
 									"flex size-full cursor-pointer justify-between px-3.5 py-3",
 									isFocused ? "bg-white/10" : "hover:bg-white/5",
 								)}
+								onClick={() => void handleLaunch(item.path)}
 							>
 								<div>{item.name}</div>
 								<div className="flex gap-0.5">
@@ -141,7 +137,7 @@ export function App() {
 										return <Keyboard interactive code={letter} key={letter} />;
 									})}
 								</div>
-							</div>
+							</button>
 						);
 					}}
 				/>
