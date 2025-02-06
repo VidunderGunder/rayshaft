@@ -11,7 +11,6 @@ import { indexAtom, searchAtom } from "./jotai";
 import { useResetAtom } from "jotai/utils";
 import { getHotkeyHandler } from "@mantine/hooks";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
-import { ScrollArea } from "./components/shadcn/scroll-area";
 
 export function App() {
 	const [search, setSearch] = useAtom(searchAtom);
