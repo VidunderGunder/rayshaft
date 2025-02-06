@@ -43,6 +43,12 @@ pub fn build_hotkey_plugin<R: Runtime>() -> tauri::plugin::TauriPlugin<R> {
                 {
                     eprintln!("Failed to launch Notes: {}", e);
                 }
+                let panel = app.get_webview_panel("main").unwrap();
+
+                if panel.is_visible() {
+                  panel.order_out(None)
+                }
+                
                 return;
             }
             if shortcut.matches(Modifiers::ALT | Modifiers::SUPER, Code::KeyK) {
