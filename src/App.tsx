@@ -1,4 +1,3 @@
-import { useEscape } from "@/hooks/useEscape";
 import { launchApp, useApps } from "./hooks/useApps";
 import { useCallback, useEffect, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
@@ -11,6 +10,7 @@ import { indexAtom, searchAtom } from "./jotai";
 import { useResetAtom } from "jotai/utils";
 import { getHotkeyHandler } from "@mantine/hooks";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
+import { useWindowHotkeys } from "./hooks/useWindowHotkeys";
 
 export function App() {
 	const [search, setSearch] = useAtom(searchAtom);
@@ -27,16 +27,23 @@ export function App() {
 		[resetSearch, resetIndex],
 	);
 
-	const handleLaunch = useCallback(
-		function handleLaunch(appPath: string | undefined) {
+	const close = useCallback(
+		function close() {
 			reset();
-			launchApp(appPath);
 			invoke("hide");
 		},
 		[reset],
 	);
 
-	useEscape({ onEscape: reset });
+	const handleLaunch = useCallback(
+		function handleLaunch(appPath: string | undefined) {
+			launchApp(appPath);
+			close();
+		},
+		[close],
+	);
+
+	useWindowHotkeys([["Escape", close]]);
 
 	const apps = useApps();
 	const fuse = new Fuse(apps, {
@@ -88,16 +95,17 @@ export function App() {
 						["Enter", () => handleLaunch(current.item.path)],
 					])}
 					className={cn(
-						"w-full rounded-2xl bg-gray-900/90 px-3.5 py-3 text-white",
+						"w-full rounded-2xl bg-gray-900/90 px-3.5 py-3 text-white backdrop-blur-sm",
 						showResults ? "rounded-b-none" : "",
 					)}
 				/>
 			</div>
 			{showResults && (
 				<Virtuoso
-					className="rounded-b-2xl bg-gray-900/90 text-white"
+					className="rounded-b-2xl bg-gray-900/90 text-white backdrop-blur-sm"
 					style={{
-						height: 48 * 4,
+						height: 48 * results.length,
+						maxHeight: 48 * 12,
 					}}
 					ref={virtuoso}
 					data={results}
