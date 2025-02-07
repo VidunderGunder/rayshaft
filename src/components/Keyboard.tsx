@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import type { ComponentProps } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import { cn } from "@/styles/utils";
+import type { KeyboardKey, Modifier } from "@/types/keyboard";
 
 export type KeyboardProps = {
 	code: string;
@@ -207,6 +208,24 @@ export function ArrowKeys({
 					<Keyboard code="ArrowRight" {...keyboardProps} />
 				)}
 			</div>
+		</div>
+	);
+}
+
+export type CommandProps = {
+	keys: (Modifier | KeyboardKey)[];
+	label: ReactNode;
+} & Omit<ComponentProps<"div">, "label" | "children">;
+
+export function Command({ className, keys, label, ...props }: CommandProps) {
+	return (
+		<div className={cn("flex items-center gap-2", className)} {...props}>
+			<div className="flex gap-0.5">
+				{keys.map((code) => (
+					<Keyboard key={code} interactive code={code} />
+				))}
+			</div>
+			<div className="text-sm text-white/75">{label}</div>
 		</div>
 	);
 }

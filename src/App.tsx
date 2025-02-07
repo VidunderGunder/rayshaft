@@ -116,6 +116,7 @@ export function App() {
 					placeholder="Gotta go fast..."
 					value={search}
 					onChange={(e) => {
+						setShowSettings(false);
 						const value = e.target.value;
 						setSearch(value);
 					}}
@@ -221,9 +222,10 @@ export function App() {
 					}}
 				/>
 			)}
-			{showSettings && (
-				<Settings className="absolute inset-x-12 top-12 min-h-[100px] rounded-2xl bg-gray-900/95" />
-			)}
+			<Settings
+				className={cn("absolute inset-x-12 top-12 rounded-2xl")}
+				open={showSettings}
+			/>
 		</div>
 	);
 }
