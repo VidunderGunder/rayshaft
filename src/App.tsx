@@ -50,6 +50,7 @@ export function App() {
 	);
 
 	function toggleSettings() {
+		if (!search) return;
 		setShowSettings(!showSettings);
 	}
 

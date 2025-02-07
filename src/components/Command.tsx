@@ -60,7 +60,7 @@ export function Command({
 					/>
 				)}
 			</div>
-			<div className="text-sm text-white/75">{label}</div>
+			{label && <div className="text-sm text-white/75">{label}</div>}
 		</div>
 	);
 }
