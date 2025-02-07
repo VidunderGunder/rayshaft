@@ -3,7 +3,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { cn } from "./styles/utils";
 import Fuse from "fuse.js";
-import { Keyboard } from "./components/Keyboard";
 import type { KeyboardKey, Modifier } from "./types/keyboard";
 import { useAtom } from "jotai";
 import { indexAtom, searchAtom } from "./jotai";

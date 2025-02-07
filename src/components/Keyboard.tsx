@@ -55,18 +55,11 @@ function getIsModifier(code: string): code is Modifier {
 	return Object.keys(modifiers).includes(code);
 }
 
-export function useKeyboard({
-	interactive = true,
-	code = "",
-}: {
-	interactive?: boolean;
-	code: Modifier | KeyboardKey;
-}) {
+export function useKeyboard(code: Modifier | KeyboardKey) {
 	const [pressed, setPressed] = useState(false);
 	const isModifier = getIsModifier(code);
 
 	useEffect(() => {
-		if (!interactive) return;
 		if (!code) return;
 
 		function handleKeyDown(e: KeyboardEvent) {
@@ -103,16 +96,16 @@ export function useKeyboard({
 			window.removeEventListener("keyup", handleKeyUp);
 			window.removeEventListener("blur", handleWindowBlur);
 		};
-	}, [code, interactive, isModifier]);
+	}, [code, isModifier]);
 
 	return { pressed, isModifier };
 }
 
 export function useModifiers() {
-	const { pressed: Shift } = useKeyboard({ code: "Shift" });
-	const { pressed: Control } = useKeyboard({ code: "Control" });
-	const { pressed: Alt } = useKeyboard({ code: "Alt" });
-	const { pressed: Meta } = useKeyboard({ code: "Meta" });
+	const { pressed: Shift } = useKeyboard("Shift");
+	const { pressed: Control } = useKeyboard("Control");
+	const { pressed: Alt } = useKeyboard("Alt");
+	const { pressed: Meta } = useKeyboard("Meta");
 
 	return {
 		Shift,
@@ -147,10 +140,7 @@ export function Keyboard({
 }: KeyboardProps) {
 	const label = children ?? getLabelFromCode(code);
 
-	const { pressed: _pressed, isModifier } = useKeyboard({
-		code,
-		interactive,
-	});
+	const { pressed: _pressed, isModifier } = useKeyboard(code);
 
 	const pressed = !interactive ? false : _pressed;
 

@@ -43,7 +43,7 @@ export function Command({
 		<div
 			className={cn(
 				"flex items-center gap-2",
-				irrelevant ? "opacity-25" : "opacity-100",
+				irrelevant ? "opacity-20" : "opacity-100",
 				className,
 			)}
 			{...props}
@@ -64,23 +64,3 @@ export function Command({
 		</div>
 	);
 }
-
-// export type CommandsProps = {
-// 	commands: CommandType[];
-// } & Omit<ComponentProps<"div">, "label" | "children">;
-
-// export function Commands({ className, commands, ...props }: CommandsProps) {
-// 	return (
-// 		<div className={cn("flex items-center gap-2", className)} {...props}>
-// 			{commands.map((
-// 				{
-// 					modifiers,
-// 					keyboardKey,
-// 					label
-// 				}
-// 			) => {
-
-// 			})}
-// 		</div>
-// 	);
-// }
