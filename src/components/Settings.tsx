@@ -9,6 +9,7 @@ import { Alias } from "./Alias";
 
 export type Config = {
 	name: string;
+	type: "app" | "url" | "extension";
 	aliases: string[];
 	hotkeys: { modifiers: Modifier[]; keyboardKey: KeyboardKey }[];
 };
@@ -19,6 +20,7 @@ export type SettingsProps = {
 
 const configExample: Config = {
 	name: "Notes",
+	type: "app",
 	hotkeys: [
 		{
 			modifiers: ["Control", "Alt", "Meta"],
