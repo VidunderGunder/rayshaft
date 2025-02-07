@@ -14,6 +14,7 @@ import { useWindowHotkeys } from "./hooks/useWindowHotkeys";
 import ReactFocusLock from "react-focus-lock";
 import { Separator } from "./components/shadcn/separator";
 import { Settings } from "./components/Settings";
+import { Command } from "./components/Command";
 
 export function App() {
 	const [search, setSearch] = useAtom(searchAtom);
@@ -176,45 +177,21 @@ export function App() {
 								</button>
 								<div className="pointer-events-none absolute right-0 flex h-full items-center gap-3 pr-3.5">
 									{isFocused && (
-										<div className="flex items-center gap-2">
-											<div className="flex gap-0.5">
-												<Keyboard
-													interactive
-													code={"Meta" satisfies Modifier}
-												/>
-												<Keyboard
-													interactive
-													code={"KeyK" satisfies KeyboardKey}
-												/>
-											</div>
-											<div className="text-sm text-white/75">
-												Config {showSettings ? "(open)" : ""}
-											</div>
-										</div>
+										<Command
+											modifiers={["Meta"]}
+											keyboardKey="KeyK"
+											label="Config"
+										/>
 									)}
 									{isShortcut && isFocused && (
 										<Separator orientation="vertical" className="h-[1.5rem]" />
 									)}
 									{isShortcut && (
-										<div className="flex items-center gap-2">
-											<div className="flex gap-0.5">
-												{itemShortcut?.modifiers.map((modifier) => {
-													return (
-														<Keyboard
-															interactive
-															code={modifier}
-															key={modifier}
-														/>
-													);
-												})}
-												{itemShortcut?.letters.map((letter) => {
-													return (
-														<Keyboard interactive code={letter} key={letter} />
-													);
-												})}
-											</div>
-											<div className="text-sm text-white/75">Open</div>
-										</div>
+										<Command
+											modifiers={itemShortcut?.modifiers}
+											keyboardKey={itemShortcut?.letters[0]}
+											label="Open"
+										/>
 									)}
 								</div>
 							</span>

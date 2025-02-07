@@ -1,7 +1,7 @@
 import type { ComponentProps } from "react";
 import { cn } from "@/styles/utils";
 import ReactFocusLock from "react-focus-lock";
-import { Command } from "./Keyboard";
+import { Command } from "./Command";
 import { Separator } from "./shadcn/separator";
 
 type Config = {
@@ -27,7 +27,7 @@ export function Settings({ className, open = false, ...props }: SettingsProps) {
 			<div className="flex items-center justify-between">
 				<div>Configuration</div>
 				<div>
-					<Command keys={["Meta", "KeyK"]} label="Close" />
+					<Command modifiers={["Meta"]} keyboardKey="KeyK" label="Close" />
 				</div>
 			</div>
 			<Separator />

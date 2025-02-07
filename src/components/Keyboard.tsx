@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { ComponentProps, ReactNode } from "react";
+import type { ComponentProps } from "react";
 import { cn } from "@/styles/utils";
 import type { KeyboardKey, Modifier } from "@/types/keyboard";
 
@@ -9,9 +9,9 @@ export type KeyboardProps = {
 	dark?: boolean;
 } & ComponentProps<"kbd">;
 
-export const codeToNorwegianLabel = {
-	Space: "Mellomrom",
-	Backspace: "Slett",
+export const codeToLabel = {
+	Space: "Space",
+	Backspace: "Backspace",
 	Enter: "Enter",
 	Escape: "Esc",
 
@@ -42,41 +42,28 @@ export const codeToNorwegianLabel = {
 	ArrowRight: "►",
 } as const satisfies Record<string, React.ReactNode>;
 
-function getLabelFromCode(code?: string) {
+export function getLabelFromCode(code?: string) {
 	if (!code) return code;
 	if (code.slice(0, 3) === "Key") return code.slice(3);
 	if (code.slice(0, 5) === "Digit") return code.slice(5);
-	return code in codeToNorwegianLabel
-		? codeToNorwegianLabel[code as keyof typeof codeToNorwegianLabel]
+	return code in codeToLabel
+		? codeToLabel[code as keyof typeof codeToLabel]
 		: code;
 }
 
-const modifiers = {
-	Alt: {
-		codes: ["AltLeft", "AltRight"],
-	},
-	Control: {
-		codes: ["ControlLeft", "ControlRight"],
-	},
-	Meta: {
-		codes: ["MetaLeft", "MetaRight"],
-	},
-	Shift: {
-		codes: ["ShiftLeft", "ShiftRight"],
-	},
-};
+function getIsModifier(code: string): code is Modifier {
+	return Object.keys(modifiers).includes(code);
+}
 
-export function Keyboard({
-	children,
-	code,
-	className,
-	dark = false,
-	interactive = false,
-	...props
-}: KeyboardProps) {
+export function useKeyboard({
+	interactive = true,
+	code = "",
+}: {
+	interactive?: boolean;
+	code: Modifier | KeyboardKey;
+}) {
 	const [pressed, setPressed] = useState(false);
-	const label = children ?? getLabelFromCode(code);
-	const isModifier = Object.keys(modifiers).includes(code);
+	const isModifier = getIsModifier(code);
 
 	useEffect(() => {
 		if (!interactive) return;
@@ -118,6 +105,55 @@ export function Keyboard({
 		};
 	}, [code, interactive, isModifier]);
 
+	return { pressed, isModifier };
+}
+
+export function useModifiers() {
+	const { pressed: Shift } = useKeyboard({ code: "Shift" });
+	const { pressed: Control } = useKeyboard({ code: "Control" });
+	const { pressed: Alt } = useKeyboard({ code: "Alt" });
+	const { pressed: Meta } = useKeyboard({ code: "Meta" });
+
+	return {
+		Shift,
+		Control,
+		Alt,
+		Meta,
+	};
+}
+
+const modifiers = {
+	Alt: {
+		codes: ["AltLeft", "AltRight"],
+	},
+	Control: {
+		codes: ["ControlLeft", "ControlRight"],
+	},
+	Meta: {
+		codes: ["MetaLeft", "MetaRight"],
+	},
+	Shift: {
+		codes: ["ShiftLeft", "ShiftRight"],
+	},
+};
+
+export function Keyboard({
+	children,
+	code,
+	className,
+	dark = false,
+	interactive = false,
+	...props
+}: KeyboardProps) {
+	const label = children ?? getLabelFromCode(code);
+
+	const { pressed: _pressed, isModifier } = useKeyboard({
+		code,
+		interactive,
+	});
+
+	const pressed = !interactive ? false : _pressed;
+
 	return (
 		<kbd
 			className={cn(
@@ -126,10 +162,10 @@ export function Keyboard({
 				isModifier ? "text-sm" : "text-xs",
 				dark
 					? "border-gray-800 bg-gray-900 text-gray-200 shadow-[0px_2px_0px_0px_rgba(255,255,255,0.025)]"
-					: "border-gray-300 bg-gray-100 text-gray-800 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.025)]",
+					: "border-gray-400 bg-gray-400 text-gray-800 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.025)]",
 				// When pressed, add a slightly darker background/border
 				pressed && dark ? "border-gray-800 bg-gray-700" : "",
-				pressed && !dark ? "border-gray-400 bg-gray-400" : "",
+				pressed && !dark ? "border-gray-50 bg-white" : "",
 				className,
 			)}
 			{...props}
@@ -208,24 +244,6 @@ export function ArrowKeys({
 					<Keyboard code="ArrowRight" {...keyboardProps} />
 				)}
 			</div>
-		</div>
-	);
-}
-
-export type CommandProps = {
-	keys: (Modifier | KeyboardKey)[];
-	label: ReactNode;
-} & Omit<ComponentProps<"div">, "label" | "children">;
-
-export function Command({ className, keys, label, ...props }: CommandProps) {
-	return (
-		<div className={cn("flex items-center gap-2", className)} {...props}>
-			<div className="flex gap-0.5">
-				{keys.map((code) => (
-					<Keyboard key={code} interactive code={code} />
-				))}
-			</div>
-			<div className="text-sm text-white/75">{label}</div>
 		</div>
 	);
 }
