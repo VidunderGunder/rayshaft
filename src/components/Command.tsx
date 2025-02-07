@@ -48,7 +48,7 @@ export function Command({
 			)}
 			{...props}
 		>
-			<div className="flex gap-0.5">
+			<div className="flex gap-[1px]">
 				{modifiers.map((code) => (
 					<Keyboard key={code} interactive={!irrelevant} code={code} />
 				))}

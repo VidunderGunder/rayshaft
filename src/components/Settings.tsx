@@ -24,12 +24,12 @@ const configExample: Config = {
 			modifiers: ["Control", "Alt", "Meta"],
 			keyboardKey: "KeyN",
 		},
-		// {
-		// 	modifiers: ["Control", "Alt", "Meta"],
-		// 	keyboardKey: "KeyT",
-		// },
+		{
+			modifiers: ["Control", "Alt", "Meta"],
+			keyboardKey: "KeyT",
+		},
 	],
-	aliases: ["notes", "n"],
+	aliases: ["notes", "nts", "n"],
 };
 
 export function Settings({ className, open = false, ...props }: SettingsProps) {
@@ -78,7 +78,7 @@ export function Settings({ className, open = false, ...props }: SettingsProps) {
 						Hotkey{config.hotkeys.length > 1 ? "s" : null}
 						<Command keyboardKey="KeyT" modifiers={["Meta"]} label="Add" />
 					</div>
-					<div className="flex flex-col gap-1">
+					<div className="flex gap-2.5">
 						{hasHotkeys
 							? config.hotkeys.map((hotkey) => {
 									return (
