@@ -121,8 +121,8 @@ export function Keyboard({
 		<kbd
 			className={cn(
 				// Tailwind (or any utility) classes to give a modern, subtle look
-				"inline-flex h-[22px] min-w-[22px] items-center justify-center rounded-lg border px-1 py-1 font-mono text-sm",
-				isModifier ? "text-md" : "text-sm",
+				"inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-md border px-1 py-1 font-mono text-sm",
+				isModifier ? "text-sm" : "text-xs",
 				dark
 					? "border-gray-800 bg-gray-900 text-gray-200 shadow-[0px_2px_0px_0px_rgba(255,255,255,0.025)]"
 					: "border-gray-300 bg-gray-100 text-gray-800 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.025)]",

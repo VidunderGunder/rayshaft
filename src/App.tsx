@@ -8,24 +8,27 @@ import type { KeyboardKey, Modifier } from "./types/keyboard";
 import { useAtom } from "jotai";
 import { indexAtom, searchAtom } from "./jotai";
 import { useResetAtom } from "jotai/utils";
-import { getHotkeyHandler, useFocusTrap } from "@mantine/hooks";
+import { getHotkeyHandler } from "@mantine/hooks";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
 import { useWindowHotkeys } from "./hooks/useWindowHotkeys";
 import ReactFocusLock from "react-focus-lock";
 import { Separator } from "./components/shadcn/separator";
+import { Settings } from "./components/Settings";
 
 export function App() {
 	const [search, setSearch] = useAtom(searchAtom);
 	const resetSearch = useResetAtom(searchAtom);
-	const [showSettings, setShowSettings] = useState(false);
 
 	const [index, setIndex] = useAtom(indexAtom);
 	const resetIndex = useResetAtom(indexAtom);
+
+	const [showSettings, setShowSettings] = useState(false);
 
 	const reset = useCallback(
 		function reset() {
 			resetSearch();
 			resetIndex();
+			setShowSettings(false);
 		},
 		[resetSearch, resetIndex],
 	);
@@ -103,7 +106,10 @@ export function App() {
 
 	return (
 		<div className="relative flex size-full max-h-full flex-col items-stretch justify-start overflow-hidden">
-			<ReactFocusLock className="relative flex items-center">
+			<ReactFocusLock
+				className="relative flex items-center"
+				disabled={showSettings}
+			>
 				<input
 					type="text"
 					name="text"
@@ -122,14 +128,14 @@ export function App() {
 						["mod+K", toggleSettings],
 					])}
 					className={cn(
-						"w-full rounded-3xl bg-gray-900/90 px-3.5 py-3 text-white backdrop-blur-sm",
+						"w-full rounded-2xl bg-gray-900/90 px-3.5 py-3 text-white backdrop-blur-sm",
 						showResults ? "rounded-b-none" : "",
 					)}
 				/>
 			</ReactFocusLock>
 			{showResults && (
 				<Virtuoso
-					className="rounded-b-3xl bg-gray-900/90 text-white backdrop-blur-sm"
+					className="rounded-b-2xl bg-gray-900/90 text-white backdrop-blur-sm"
 					style={{
 						height: 48 * results.length,
 						maxHeight: 48 * 10,
@@ -180,7 +186,9 @@ export function App() {
 													code={"KeyK" satisfies KeyboardKey}
 												/>
 											</div>
-											<div className="text-sm text-white/75">Config</div>
+											<div className="text-sm text-white/75">
+												Config {showSettings ? "(open)" : ""}
+											</div>
 										</div>
 									)}
 									{isShortcut && isFocused && (
@@ -207,17 +215,6 @@ export function App() {
 											<div className="text-sm text-white/75">Open</div>
 										</div>
 									)}
-
-									{/* <button
-										type="button"
-										className="group pointer-events-auto aspect-square h-full p-1.5"
-									>
-										<span className="flex size-full items-center justify-center rounded-full text-white/50 group-hover:bg-white/5 group-hover:text-white">
-											<span className="relative bottom-[6px] text-[22px]">
-												...
-											</span>
-										</span>
-									</button> */}
 								</div>
 							</span>
 						);
@@ -225,16 +222,7 @@ export function App() {
 				/>
 			)}
 			{showSettings && (
-				<div className="absolute right-3 bottom-3 rounded-3xl bg-white px-3.5 py-3">
-					Settings
-					<button
-						type="button"
-						onClick={toggleSettings}
-						className="aspect-square rounded-full bg-red-400 p-3"
-					>
-						x
-					</button>
-				</div>
+				<Settings className="absolute inset-x-12 top-12 min-h-[100px] rounded-2xl bg-gray-900/95" />
 			)}
 		</div>
 	);
