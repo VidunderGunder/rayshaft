@@ -25,9 +25,6 @@ export function useApps(
 }
 
 export function launchApp(appPath?: string) {
-	if (appPath) {
-		invoke("launch_app", { appPath })
-			.then(() => console.log("App launched"))
-			.catch(console.error);
-	}
+	if (!appPath) return;
+	invoke("launch_app", { appPath });
 }

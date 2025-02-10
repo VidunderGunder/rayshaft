@@ -26,7 +26,7 @@ pub trait WebviewWindowExt {
     fn center_at_cursor_monitor(&self) -> tauri::Result<()>;
 }
 
-const KEEP_OPEN: bool = true; // Toggle for development
+const KEEP_OPEN: bool = tauri::is_dev(); // Toggle for development
 
 impl<R: Runtime> WebviewWindowExt for WebviewWindow<R> {
     fn to_spotlight_panel(&self) -> tauri::Result<Panel> {
@@ -73,7 +73,7 @@ impl<R: Runtime> WebviewWindowExt for WebviewWindow<R> {
                     let _ = app_handle.emit(format!("{}_panel_did_become_key", label).as_str(), ());
                 }
                 "window_did_resign_key" => {
-                    if (KEEP_OPEN) {
+                    if KEEP_OPEN {
                         return;
                     }
                     let _ = app_handle.emit(format!("{}_panel_did_resign_key", label).as_str(), ());

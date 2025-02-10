@@ -1,8 +1,8 @@
 [package]
 name = "rayshaft"
-version = "0.2.0"
-description = "A Tauri macOS spotlight app"
-authors = ["Victor Aremu <me@victorare.mu>"]
+version = "0.1.0"
+description = ""
+authors = ["Kristian Gunder Kramås <kristiankramas@outlook.com>"]
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -11,7 +11,7 @@ edition = "2021"
 tauri-build = { version = "2.0.5", features = [] }
 
 [dependencies]
-tauri = { version = "2.0.5", features = ["macos-private-api"] }
+tauri = { version = "2.2.5", features = ["macos-private-api"] }
 tauri-plugin-global-shortcut = "2.2.0"
 
 thiserror = "2.0.11"
@@ -30,3 +30,5 @@ default = ["custom-protocol"]
 # this feature is used used for production builds where `devPath` points to the filesystem
 # DO NOT remove this
 custom-protocol = ["tauri/custom-protocol"]
+# to silence clippy warnings
+cargo-clippy = []

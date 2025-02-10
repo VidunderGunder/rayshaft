@@ -3,19 +3,17 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { cn } from "./styles/utils";
 import Fuse from "fuse.js";
-import type { KeyboardKey, Modifier } from "./types/keyboard";
-import { useAtom } from "jotai";
-import { indexAtom, searchAtom } from "./jotai";
+import { useAtom, useAtomValue } from "jotai";
+import { disableEscapeAtom, indexAtom, searchAtom } from "./jotai";
 import { useResetAtom } from "jotai/utils";
-import { getHotkeyHandler } from "@mantine/hooks";
+import { getHotkeyHandler, useHotkeys } from "@mantine/hooks";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
-import { useWindowHotkeys } from "./hooks/useWindowHotkeys";
 import ReactFocusLock from "react-focus-lock";
-import { Separator } from "./components/shadcn/separator";
 import { Settings } from "./components/Settings";
-import { Command } from "./components/Command";
+import { Commands, type CommandType } from "./components/Command";
 
 export function App() {
+	const disableEscape = useAtomValue(disableEscapeAtom);
 	const [search, setSearch] = useAtom(searchAtom);
 	const resetSearch = useResetAtom(searchAtom);
 
@@ -54,8 +52,6 @@ export function App() {
 		setShowSettings(!showSettings);
 	}
 
-	useWindowHotkeys([["Escape", close]]);
-
 	const apps = useApps();
 	const fuse = new Fuse(apps, {
 		keys: ["name"],
@@ -63,7 +59,7 @@ export function App() {
 	const results = fuse.search(search);
 	const showResults = results.length > 0;
 
-	const current = results[index];
+	const current = results[index] as (typeof results)[number] | undefined;
 
 	function setIndexNext() {
 		const newIndex = next(index, results.length);
@@ -105,11 +101,27 @@ export function App() {
 
 	const virtuoso = useRef<VirtuosoHandle>(null);
 
+	useHotkeys(
+		[
+			[
+				"Escape",
+				() => {
+					if (disableEscape) return;
+					close();
+				},
+			],
+			["Mod+K", toggleSettings],
+		],
+		[],
+	);
+
 	return (
 		<div className="relative flex size-full max-h-full flex-col items-stretch justify-start overflow-hidden">
 			<ReactFocusLock
 				className="relative flex items-center"
 				disabled={showSettings}
+				autoFocus={!showSettings}
+				noFocusGuards={showSettings}
 			>
 				<input
 					type="text"
@@ -126,8 +138,14 @@ export function App() {
 						["ArrowUp", setIndexPrevious],
 						["mod+ArrowUp", setIndexTop],
 						["mod+ArrowDown", setIndexBottom],
-						["Enter", () => handleLaunch(current.item.path)],
-						["mod+K", toggleSettings],
+						[
+							"Enter",
+							() => {
+								if (showSettings) return;
+								handleLaunch(current?.item.path);
+							},
+						],
+						// ["mod+K", toggleSettings],
 					])}
 					className={cn(
 						"w-full rounded-2xl bg-gray-900/90 px-3.5 py-3 text-white backdrop-blur-sm",
@@ -146,20 +164,28 @@ export function App() {
 					data={results}
 					itemContent={(i, result) => {
 						const { item } = result;
-						const itemShortcut: {
-							modifiers: Modifier[];
-							letters: KeyboardKey[];
-						} = {
+						const itemShortcut: CommandType = {
 							modifiers: [],
-							letters: [],
+							keyboardKey: "",
+							label: null,
 						};
 						if (item.name === "Notes") {
 							itemShortcut.modifiers = ["Control", "Alt", "Meta"];
-							itemShortcut.letters = ["KeyN"];
+							itemShortcut.keyboardKey = "KeyN";
+							itemShortcut.label = item.name;
 						}
 						const isShortcut =
-							!!itemShortcut.letters.length && !!itemShortcut.modifiers.length;
+							!!itemShortcut.keyboardKey && !!itemShortcut.modifiers.length;
 						const isFocused = i === index;
+
+						const commands: CommandType[] = [];
+						if (isFocused)
+							commands.push({
+								keyboardKey: "KeyK",
+								modifiers: ["Meta"],
+								label: "Config",
+							});
+						if (isShortcut) commands.push(itemShortcut);
 						return (
 							<span
 								key={item.path}
@@ -175,25 +201,10 @@ export function App() {
 								>
 									<div>{item.name}</div>
 								</button>
-								<div className="pointer-events-none absolute right-0 flex h-full items-center gap-3 pr-3.5">
-									{isFocused && (
-										<Command
-											modifiers={["Meta"]}
-											keyboardKey="KeyK"
-											label="Config"
-										/>
-									)}
-									{isShortcut && isFocused && (
-										<Separator orientation="vertical" className="h-[1.5rem]" />
-									)}
-									{isShortcut && (
-										<Command
-											modifiers={itemShortcut?.modifiers}
-											keyboardKey={itemShortcut?.letters[0]}
-											label="Open"
-										/>
-									)}
-								</div>
+								<Commands
+									className="pointer-events-none absolute right-0 h-full pr-3.5"
+									commands={commands}
+								/>
 							</span>
 						);
 					}}
@@ -202,6 +213,10 @@ export function App() {
 			<Settings
 				className={cn("absolute inset-x-12 top-12 rounded-2xl")}
 				open={showSettings}
+				configId={current?.item.path ?? ""}
+				configVariant={"App"}
+				configName={current?.item.name ?? ""}
+				configPath={current?.item.path}
 			/>
 		</div>
 	);

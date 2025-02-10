@@ -11,8 +11,8 @@ export type KeyboardProps = {
 
 export const codeToLabel = {
 	Space: "Space",
-	Backspace: "Backspace",
-	Enter: "Enter",
+	Backspace: "⌫",
+	Enter: "↵",
 	Escape: "Esc",
 
 	// Shift
