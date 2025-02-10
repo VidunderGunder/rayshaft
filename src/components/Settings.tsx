@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState, type ComponentProps } from "react";
 import { cn } from "@/styles/utils";
 import ReactFocusLock from "react-focus-lock";
-import { Command, Commands, Confirm } from "./Command";
+import { Command, Commands, Confirm, HotkeyInput } from "./Command";
 import { Separator } from "./shadcn/separator";
 import type { KeyboardKey, Modifier } from "@/types/keyboard";
 import { getHotkeyHandler, useHotkeys } from "@mantine/hooks";
@@ -36,7 +36,8 @@ export function Settings({
 	configPath,
 	...props
 }: SettingsProps) {
-	const { addAlias, removeAlias, removeHotkey, settings } = useSettings();
+	const { addAlias, removeAlias, addHotkey, removeHotkey, settings } =
+		useSettings();
 	// const reset = useResetAtom(settingsAtom);
 	// reset();
 
@@ -95,6 +96,15 @@ export function Settings({
 			removeAlias({
 				id: configId,
 				alias: i,
+			});
+			if (isLast) setMode(null);
+			return;
+		}
+		if (mode === "removeHotkey") {
+			const isLast = config?.hotkeys?.length === 1;
+			removeHotkey({
+				id: configId,
+				hotkey: i,
 			});
 			if (isLast) setMode(null);
 			return;
@@ -241,7 +251,7 @@ export function Settings({
 									disabled: disableRemoveHotkey,
 									modifiers: ["Shift", "Meta"],
 									keyboardKey: "KeyT",
-									label: mode === "removeHotkey" ? "Abort" : "Remove",
+									label: mode === "removeHotkey" ? "Done" : "Remove",
 								},
 								{
 									disabled: disableAddHotkey,
@@ -254,19 +264,45 @@ export function Settings({
 					</div>
 					<div className="flex flex-wrap gap-2.5">
 						{hasHotkeys ? (
-							config.hotkeys.map((hotkey) => {
+							config.hotkeys.map((hotkey, i) => {
 								return (
-									<Command
+									<div
+										className="relative"
 										key={[...hotkey.modifiers, ...hotkey.keyboardKey].join("-")}
-										{...hotkey}
-										label={null}
-									/>
+									>
+										{mode === "removeHotkey" && (
+											<button
+												className="-bottom-1.5 -right-1.5 absolute z-[1] flex size-3.5 items-center justify-center rounded-full border border-white bg-red-400 text-[8px]"
+												type="button"
+											>
+												<span className="relative top-[1px]">{i + 1}</span>
+											</button>
+										)}
+										<Command {...hotkey} label={null} />
+									</div>
 								);
 							})
 						) : mode === "addHotkey" ? null : (
 							<span className="text-sm opacity-35">–</span>
 						)}
-						{mode === "addHotkey" && <div>Adding</div>}
+						{mode === "addHotkey" && (
+							<div>
+								<HotkeyInput
+									onHotkey={(hotkey) => {
+										addHotkey({
+											hotkey,
+											id: configId,
+											defaults: {
+												name: configName,
+												variant: configVariant,
+												path: configPath,
+											},
+										});
+										setMode(null);
+									}}
+								/>
+							</div>
+						)}
 					</div>
 				</div>
 				<div className="flex flex-col justify-between gap-1">
@@ -278,7 +314,7 @@ export function Settings({
 									disabled: disableRemoveAlias,
 									modifiers: ["Shift", "Meta"],
 									keyboardKey: "KeyL",
-									label: mode === "removeAlias" ? "Abort" : "Remove",
+									label: mode === "removeAlias" ? "Done" : "Remove",
 								},
 								{
 									disabled: disableAddAlias,

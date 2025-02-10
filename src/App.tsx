@@ -4,13 +4,14 @@ import { invoke } from "@tauri-apps/api/core";
 import { cn } from "./styles/utils";
 import Fuse from "fuse.js";
 import { useAtom } from "jotai";
-import { indexAtom, searchAtom } from "./jotai";
+import { indexAtom, searchAtom, useSettings } from "./jotai";
 import { useResetAtom } from "jotai/utils";
 import { getHotkeyHandler, useHotkeys } from "@mantine/hooks";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
 import ReactFocusLock from "react-focus-lock";
 import { Settings } from "./components/Settings";
 import { Commands, type CommandType } from "./components/Command";
+import { Alias } from "./components/Alias";
 
 export function App() {
 	const [search, setSearch] = useAtom(searchAtom);
@@ -19,6 +20,7 @@ export function App() {
 	const [index, setIndex] = useAtom(indexAtom);
 	const resetIndex = useResetAtom(indexAtom);
 
+	const { settings } = useSettings();
 	const [showSettings, setShowSettings] = useState(false);
 
 	const reset = useCallback(
@@ -151,16 +153,12 @@ export function App() {
 					data={results}
 					itemContent={(i, result) => {
 						const { item } = result;
+						const config = settings.find((c) => c.id === item.path);
 						const itemShortcut: CommandType = {
-							modifiers: [],
-							keyboardKey: "",
-							label: null,
+							modifiers: config?.hotkeys[0]?.modifiers ?? [],
+							keyboardKey: config?.hotkeys[0]?.keyboardKey ?? "",
+							label: config?.variant === "App" ? "open" : null,
 						};
-						if (item.name === "Notes") {
-							itemShortcut.modifiers = ["Control", "Alt", "Meta"];
-							itemShortcut.keyboardKey = "KeyN";
-							itemShortcut.label = item.name;
-						}
 						const isShortcut =
 							!!itemShortcut.keyboardKey && !!itemShortcut.modifiers.length;
 						const isFocused = i === index;
@@ -183,15 +181,21 @@ export function App() {
 							>
 								<button
 									type="button"
-									className="flex flex-1 px-3.5 py-3 text-left hover:bg-white/5"
+									className="flex flex-1 justify-between px-3.5 py-3 text-left hover:bg-white/5"
 									onClick={() => void handleLaunch(item.path)}
 								>
-									<div>{item.name}</div>
+									<div className="flex items-center gap-3">
+										{item.name}
+										<div className="flex items-center gap-1">
+											{config?.aliases.map((alias) => {
+												return <Alias key={alias}>{alias}</Alias>;
+											})}
+										</div>
+									</div>
+									<div className="pr-3.5">
+										<Commands commands={commands} />
+									</div>
 								</button>
-								<Commands
-									className="pointer-events-none absolute right-0 h-full pr-3.5"
-									commands={commands}
-								/>
 							</span>
 						);
 					}}

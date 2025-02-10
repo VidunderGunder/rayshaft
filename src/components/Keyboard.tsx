@@ -1,7 +1,12 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { ComponentProps } from "react";
 import { cn } from "@/styles/utils";
 import type { KeyboardKey, Modifier } from "@/types/keyboard";
+
+export type KeyboardBaseProps = {
+	isModifier?: boolean;
+	label?: string;
+} & Omit<ComponentProps<"kbd">, "label">;
 
 export type KeyboardProps = {
 	code: string;
@@ -55,9 +60,33 @@ function getIsModifier(code: string): code is Modifier {
 	return Object.keys(modifiers).includes(code);
 }
 
-export function useKeyboard(code: Modifier | KeyboardKey) {
+export function useKeyboard(
+	code: Modifier | KeyboardKey,
+	options?: {
+		onPressDown?: (code: Modifier | KeyboardKey) => void;
+		onPressUp?: (code: Modifier | KeyboardKey) => void;
+	},
+) {
+	const { onPressDown, onPressUp } = options ?? {};
+
 	const [pressed, setPressed] = useState(false);
 	const isModifier = getIsModifier(code);
+
+	const handlePressDown = useCallback(
+		function handlePress() {
+			setPressed(true);
+			onPressDown?.(code);
+		},
+		[onPressDown, code],
+	);
+
+	const handlePressUp = useCallback(
+		function handlePress() {
+			setPressed(false);
+			onPressUp?.(code);
+		},
+		[onPressUp, code],
+	);
 
 	useEffect(() => {
 		if (!code) return;
@@ -65,26 +94,26 @@ export function useKeyboard(code: Modifier | KeyboardKey) {
 		function handleKeyDown(e: KeyboardEvent) {
 			if (isModifier) {
 				const modifier = modifiers[code as keyof typeof modifiers];
-				if (modifier.codes.includes(e.code)) setPressed(true);
+				if (modifier.codes.includes(e.code)) handlePressDown();
 			} else if (e.code === code) {
-				setPressed(true);
+				handlePressDown();
 			}
 		}
 
 		function handleKeyUp(e: KeyboardEvent) {
 			if (isModifier) {
 				const modifier = modifiers[code as keyof typeof modifiers];
-				if (modifier.codes.includes(e.code)) setPressed(false);
+				if (modifier.codes.includes(e.code)) handlePressUp();
 			} else if (e.code === code) {
-				setPressed(false);
+				handlePressUp();
 			} else if (!e.getModifierState("Meta") && !e.getModifierState("Alt")) {
 				// If we suspect KeyK was stuck, we can reset it here...
-				setPressed(false);
+				handlePressUp();
 			}
 		}
 
 		function handleWindowBlur() {
-			setPressed(false);
+			handlePressUp();
 		}
 
 		window.addEventListener("keydown", handleKeyDown);
@@ -96,7 +125,7 @@ export function useKeyboard(code: Modifier | KeyboardKey) {
 			window.removeEventListener("keyup", handleKeyUp);
 			window.removeEventListener("blur", handleWindowBlur);
 		};
-	}, [code, isModifier]);
+	}, [code, isModifier, handlePressDown, handlePressUp]);
 
 	return { pressed, isModifier };
 }
@@ -130,38 +159,45 @@ const modifiers = {
 	},
 };
 
-export function Keyboard({
+export function KeyboardBase({
 	children,
-	code,
 	className,
-	dark = false,
-	interactive = false,
+	isModifier,
 	...props
-}: KeyboardProps) {
-	const label = children ?? getLabelFromCode(code);
-
-	const { pressed: _pressed, isModifier } = useKeyboard(code);
-
-	const pressed = !interactive ? false : _pressed;
-
+}: KeyboardBaseProps) {
 	return (
 		<kbd
 			className={cn(
-				// Tailwind (or any utility) classes to give a modern, subtle look
 				"inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-md border px-1 py-1 font-mono text-sm",
+				"border-gray-400 bg-gray-400 text-gray-800 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.025)]",
 				isModifier ? "text-sm" : "text-xs",
-				dark
-					? "border-gray-800 bg-gray-900 text-gray-200 shadow-[0px_2px_0px_0px_rgba(255,255,255,0.025)]"
-					: "border-gray-400 bg-gray-400 text-gray-800 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.025)]",
-				// When pressed, add a slightly darker background/border
-				pressed && dark ? "border-gray-800 bg-gray-700" : "",
-				pressed && !dark ? "border-gray-50 bg-white" : "",
 				className,
 			)}
 			{...props}
 		>
-			{typeof label === "string" ? label.toUpperCase() : label}
+			{typeof children === "string" ? children.toUpperCase() : children}
 		</kbd>
+	);
+}
+export function Keyboard({
+	children,
+	code,
+	className,
+	interactive = false,
+	...props
+}: KeyboardProps) {
+	const label = children ?? getLabelFromCode(code);
+	const { pressed: _pressed, isModifier } = useKeyboard(code);
+	const pressed = !interactive ? false : _pressed;
+
+	return (
+		<KeyboardBase
+			isModifier={isModifier}
+			className={cn(pressed ? "border-gray-300 bg-gray-300" : "", className)}
+			{...props}
+		>
+			{label}
+		</KeyboardBase>
 	);
 }
 

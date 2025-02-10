@@ -16,10 +16,14 @@ bun dev
   - [x] Hotkey proof of concept
   - [x] Add aliases
   - [x] Remove aliases
-  - [ ] Use aliases 👈
-  - [ ] Add hotkeys
-  - [ ] Remove hotkeys
-  - [ ] Use hotkeys
+  - [x] Show aliases in search
+  - [x] Add hotkeys
+  - [x] Remove hotkeys
+  - [ ] Use hotkeys 👈
+  - [ ] Always show matching alias first
+- [ ] File search (extension)
+  - [ ] Open file
+  - [ ] Open file in specific app
 - [ ] Configure search hotkey
 - [ ] Calculator (search)
   - [ ] Math
@@ -27,9 +31,6 @@ bun dev
   - [ ] Unit converter
 - [ ] Hotkey laucher (launcher key -> )
 - [ ] URL launcher (extension)
-- [ ] File search (extension)
-  - [ ] Open file
-  - [ ] Open file in specific app
 - [ ] Clipboard history (extension)
 - [ ] Snippets (extension)
 - [ ] Web search (extension)

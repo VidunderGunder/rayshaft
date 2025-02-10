@@ -1,13 +1,41 @@
 import { cn } from "@/styles/utils";
-import type { Modifier, KeyboardKey } from "@/types/keyboard";
-import { type ReactNode, type ComponentProps, Fragment } from "react";
-import { Keyboard, useModifiers } from "./Keyboard";
+import {
+	type Modifier,
+	type KeyboardKey,
+	hotkeyModifiers,
+	hotkeyKeys,
+} from "@/types/keyboard";
+import { type ReactNode, type ComponentProps, Fragment, useState } from "react";
+import {
+	getLabelFromCode,
+	Keyboard,
+	KeyboardBase,
+	type KeyboardProps,
+	useKeyboard,
+	useModifiers,
+} from "./Keyboard";
 import { Separator } from "./shadcn/separator";
 import { useHotkeys } from "@mantine/hooks";
 
-export type CommandType = {
+export type Hotkey = {
 	modifiers: Modifier[];
 	keyboardKey: KeyboardKey;
+};
+
+export function isEqualHotkey(a: Hotkey, b: Hotkey): boolean {
+	if (a.modifiers.length !== b.modifiers.length) return false;
+	if (a.keyboardKey !== b.keyboardKey) return false;
+
+	for (let i = 0; i < a.modifiers.length; i++) {
+		if (!b.modifiers.includes(a.modifiers[i])) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+export type CommandType = Hotkey & {
 	label: ReactNode;
 	disabled?: boolean;
 };
@@ -152,6 +180,102 @@ export function Confirm({
 					},
 				]}
 			/>
+		</div>
+	);
+}
+
+type HotkeyKeyboardProps = {
+	onPressDown?: (code: string) => void;
+	onPressUp?: (code: string) => void;
+} & KeyboardProps;
+
+export function HotkeyKeyboard({
+	children,
+	code,
+	className,
+	onPressDown,
+	onPressUp,
+	...props
+}: HotkeyKeyboardProps) {
+	const label = children ?? getLabelFromCode(code);
+	const { pressed, isModifier } = useKeyboard(code, {
+		onPressDown,
+		onPressUp,
+	});
+
+	return (
+		<KeyboardBase
+			isModifier={isModifier}
+			className={cn(
+				pressed ? "border-gray-300 bg-gray-300" : "hidden",
+				className,
+			)}
+			{...props}
+		>
+			{label}
+		</KeyboardBase>
+	);
+}
+
+export type HotkeyInputProps = {
+	onHotkey: (hotkey: Hotkey) => void;
+} & Omit<ComponentProps<"div">, "children">;
+
+export function HotkeyInput({
+	className,
+	onHotkey,
+	...props
+}: HotkeyInputProps) {
+	const [modifiers, setModifiers] = useState<Modifier[]>([]);
+	const [keys, setKeys] = useState<Modifier[]>([]);
+
+	return (
+		<div className={cn("flex h-[10px] gap-[1px]", className)} {...props}>
+			{modifiers.length === 0 && keys.length === 0 && (
+				<span className="text-sm italic opacity-50">
+					{" "}
+					Press a combination of keys...
+				</span>
+			)}
+			{hotkeyModifiers.map((code) => {
+				return (
+					<HotkeyKeyboard
+						key={code}
+						code={code}
+						onPressDown={(code) => {
+							if (modifiers.includes(code)) return;
+							setModifiers((prev) => [...prev, code]);
+						}}
+						onPressUp={(code) => {
+							const index = modifiers.findIndex((m) => m === code);
+							if (index === -1) return;
+							setModifiers((prev) => prev.toSpliced(index, 1));
+						}}
+					/>
+				);
+			})}
+			{hotkeyKeys.map((code) => {
+				return (
+					<HotkeyKeyboard
+						key={code}
+						code={code}
+						onPressDown={(code) => {
+							if (keys.includes(code)) return;
+							setKeys((prev) => [...prev, code]);
+							if (modifiers.length === 0) return;
+							onHotkey({
+								keyboardKey: code,
+								modifiers,
+							});
+						}}
+						onPressUp={(code) => {
+							const index = keys.findIndex((m) => m === code);
+							if (index === -1) return;
+							setKeys((prev) => prev.toSpliced(index, 1));
+						}}
+					/>
+				);
+			})}
 		</div>
 	);
 }

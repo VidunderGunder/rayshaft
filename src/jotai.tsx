@@ -2,6 +2,7 @@ import { atomWithStorage } from "jotai/utils";
 import type { Config } from "./components/Settings";
 import { withImmer } from "jotai-immer";
 import { useAtom } from "jotai";
+import { isEqualHotkey, type Hotkey } from "./components/Command";
 
 // ASCII Text Generator:
 // https://patorjk.com/software/taag/#p=display&f=Elite&t=Hello%20World
@@ -45,7 +46,7 @@ export function useSettings() {
 		defaults?: Omit<Config, "id" | "aliases" | "hotkeys">;
 	}) {
 		setSettings((draft) => {
-			if (!alias) return;
+			if (alias === "") return;
 
 			const configIndex = id ? settings.findIndex((e) => e.id === id) : -1;
 			const exists = configIndex !== -1 && configIndex < draft.length;
@@ -91,7 +92,6 @@ export function useSettings() {
 
 			const configIndex = id ? settings.findIndex((e) => e.id === id) : -1;
 			const configExists = configIndex !== -1 && configIndex < draft.length;
-			console.log(configIndex, configExists);
 
 			if (!configExists) return draft;
 
@@ -101,8 +101,6 @@ export function useSettings() {
 					: draft[configIndex].aliases.findIndex((a) => a === alias);
 			const aliasExists = aliasIndex !== -1;
 
-			console.log(aliasIndex, aliasExists);
-
 			if (!aliasExists) return draft;
 
 			draft[configIndex].aliases.splice(aliasIndex, 1);
@@ -111,12 +109,105 @@ export function useSettings() {
 		});
 	}
 
-	function addHotkey() {
-		// TODO
+	function addHotkey({
+		id,
+		hotkey,
+		defaults,
+	}: {
+		id: string;
+		/**
+		 * Either the alias `string` or the alias index `number`
+		 */
+		hotkey: Hotkey;
+		defaults?: Omit<Config, "id" | "aliases" | "hotkeys">;
+	}) {
+		setSettings((draft) => {
+			const configIndex = id ? settings.findIndex((e) => e.id === id) : -1;
+			const configExists = configIndex !== -1 && configIndex < draft.length;
+
+			console.log({
+				configIndex,
+				configExists,
+			});
+
+			if (!defaults) return draft;
+
+			const c: Config = configExists
+				? draft[configIndex]
+				: {
+						id,
+						...defaults,
+						aliases: [],
+						hotkeys: [hotkey],
+					};
+
+			if (!configExists) {
+				draft.push(c);
+				return draft;
+			}
+
+			const hotkeyIndex =
+				typeof hotkey === "number"
+					? hotkey
+					: draft[configIndex].hotkeys.findIndex((h) =>
+							isEqualHotkey(h, hotkey),
+						);
+			const hotkeyExists = hotkeyIndex !== -1;
+
+			console.log({
+				hotkeyIndex,
+				hotkeyExists,
+			});
+
+			if (hotkeyExists) {
+				return draft;
+			}
+
+			draft[configIndex].hotkeys.push(hotkey);
+
+			return draft;
+		});
 	}
 
-	function removeHotkey() {
-		// TODO
+	function removeHotkey({
+		id,
+		hotkey,
+	}: {
+		id: string;
+		/**
+		 * Either the hotkey `Hotkey` or the hotkey index `number`
+		 */
+		hotkey: Hotkey | number;
+	}) {
+		setSettings((draft) => {
+			const configIndex = id ? settings.findIndex((e) => e.id === id) : -1;
+			const configExists = configIndex !== -1 && configIndex < draft.length;
+			console.log({
+				configIndex,
+				configExists,
+			});
+
+			if (!configExists) return draft;
+
+			const hotkeyIndex =
+				typeof hotkey === "number"
+					? hotkey
+					: draft[configIndex].hotkeys.findIndex((h) =>
+							isEqualHotkey(h, hotkey),
+						);
+			const hotkeyExists = hotkeyIndex !== -1;
+
+			console.log({
+				hotkeyIndex,
+				hotkeyExists,
+			});
+
+			if (!hotkeyExists) return draft;
+
+			draft[configIndex].hotkeys.splice(hotkeyIndex, 1);
+
+			return draft;
+		});
 	}
 
 	function reset() {
