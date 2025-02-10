@@ -1,14 +1,12 @@
-import { useState, type ComponentProps } from "react";
+import { useCallback, useEffect, useState, type ComponentProps } from "react";
 import { cn } from "@/styles/utils";
 import ReactFocusLock from "react-focus-lock";
-import { Command, Commands } from "./Command";
+import { Command, Commands, Confirm } from "./Command";
 import { Separator } from "./shadcn/separator";
 import type { KeyboardKey, Modifier } from "@/types/keyboard";
 import { getHotkeyHandler, useHotkeys } from "@mantine/hooks";
 import { Alias } from "./Alias";
-import { useAtom, useSetAtom } from "jotai";
-import { disableEscapeAtom, settingsAtom } from "@/jotai";
-import { useResetAtom } from "jotai/utils";
+import { useSettings } from "@/jotai";
 
 export type ConfigVariant = "App" | "Url" | "Extension";
 
@@ -38,77 +36,28 @@ export function Settings({
 	configPath,
 	...props
 }: SettingsProps) {
-	const setDisableEscape = useSetAtom(disableEscapeAtom);
-	const [settings, setSettings] = useAtom(settingsAtom);
+	const { addAlias, removeAlias, removeHotkey, settings } = useSettings();
 	// const reset = useResetAtom(settingsAtom);
 	// reset();
-	const [addingAlias, setAddingAlias] = useState(false);
-	const [addingHotkey, setAddingHotkey] = useState(false);
 
+	const [mode, setMode] = useState<
+		"addHotkey" | "addAlias" | "removeHotkey" | "removeAlias" | null
+	>(null);
+
+	const [showConfim, setShowConfirm] = useState(false);
 	const [alias, setAlias] = useState("");
 
-	console.log(settings);
-
-	useHotkeys(
-		[
-			[
-				"mod+T",
-				(e) => {
-					e.preventDefault();
-					if (addingAlias) return;
-					setAlias("");
-					setAddingAlias(false);
-					setAddingHotkey((prev) => {
-						setDisableEscape(!prev);
-						return !prev;
-					});
-				},
-			],
-			[
-				"mod+L",
-				(e) => {
-					e.preventDefault();
-					if (addingHotkey) return;
-					setAddingHotkey(false);
-					setAddingAlias((prev) => {
-						setDisableEscape(!prev);
-						return !prev;
-					});
-				},
-			],
-			[
-				"mod+K",
-				() => {
-					setAddingHotkey(false);
-					setAlias("");
-					setAddingAlias(false);
-					setDisableEscape(false);
-				},
-			],
-			[
-				"Escape",
-				(e) => {
-					if (addingAlias || addingHotkey) {
-						e.preventDefault();
-						setAddingAlias(false);
-						setAlias("");
-						setAddingHotkey(false);
-						setDisableEscape(false);
-					}
-				},
-			],
-		],
-		[],
-	);
+	const onClose = useCallback(() => {
+		setMode(null);
+		setAlias("");
+		setShowConfirm(false);
+	}, []);
 
 	let configIndex = configId
 		? settings.findIndex((e) => e.id === configId)
 		: -1;
 
-	console.log(configId, configIndex);
-
 	let config = configIndex > -1 ? settings[configIndex] : undefined;
-	console.log(config);
 
 	if (!config && configId) {
 		config = {
@@ -121,10 +70,132 @@ export function Settings({
 		};
 		configIndex = settings.length - 1;
 	}
-	if (!config) return;
 
 	const hasHotkeys = !!config?.hotkeys?.length;
 	const hasAliases = !!config?.aliases?.length;
+
+	function handleReset() {
+		// TODO
+	}
+
+	const disableAddHotkey =
+		(mode !== null && mode !== "addHotkey") ||
+		(config?.hotkeys.length ?? 0) >= 5;
+	const disableAddAlias =
+		(mode !== null && mode !== "addAlias") ||
+		(config?.aliases.length ?? 0) >= 5;
+	const disableRemoveHotkey =
+		(mode !== null && mode !== "removeHotkey") || !hasHotkeys;
+	const disableRemoveAlias =
+		(mode !== null && mode !== "removeAlias") || !hasAliases;
+
+	function remove(i: number) {
+		if (mode === "removeAlias") {
+			const isLast = config?.aliases?.length === 1;
+			removeAlias({
+				id: configId,
+				alias: i,
+			});
+			if (isLast) setMode(null);
+			return;
+		}
+	}
+
+	useHotkeys(
+		[
+			[
+				// Add hotkey
+				"mod+T",
+				(e) => {
+					if (!open) return;
+					if (disableAddHotkey) return;
+					e.preventDefault();
+					if (mode === "addHotkey") {
+						setMode(null);
+						return;
+					}
+					setMode("addHotkey");
+				},
+			],
+			[
+				// Add alias
+				"mod+L",
+				(e) => {
+					if (!open) return;
+					if (disableAddAlias) return;
+					e.preventDefault();
+					if (mode === "addAlias") {
+						setMode(null);
+						return;
+					}
+					setMode("addAlias");
+				},
+			],
+			[
+				// Remove hotkey
+				"mod+shift+T",
+				(e) => {
+					if (!open) return;
+					if (disableRemoveHotkey) return;
+					e.preventDefault();
+					if (mode === "removeHotkey") {
+						setMode(null);
+						return;
+					}
+					setMode("removeHotkey");
+				},
+			],
+			[
+				// Remove alias
+				"mod+shift+L",
+				(e) => {
+					if (!open) return;
+					if (disableRemoveAlias) return;
+					e.preventDefault();
+					if (mode === "removeAlias") {
+						setMode(null);
+						return;
+					}
+					setMode("removeAlias");
+				},
+			],
+			[
+				// Close
+				"mod+K",
+				() => {
+					if (!open) return;
+				},
+			],
+			[
+				// Reset
+				"mod+R",
+				() => {
+					if (!open) return;
+					setShowConfirm(true);
+				},
+			],
+			["Digit1", () => remove(0)],
+			["Digit2", () => remove(1)],
+			["Digit3", () => remove(2)],
+			["Digit4", () => remove(3)],
+			["Digit5", () => remove(4)],
+		],
+		[],
+	);
+
+	useEffect(() => {
+		if (!open) {
+			onClose();
+		}
+	}, [open, onClose]);
+
+	useEffect(() => {
+		if (mode === null) {
+			setAlias("");
+		}
+	}, [mode]);
+
+	if (!config) return;
 
 	return (
 		<ReactFocusLock
@@ -139,15 +210,24 @@ export function Settings({
 			<div className="flex items-center justify-between">
 				<div className="font-black">{config.name ?? "Configuration"}</div>
 				<div>
-					<Commands
-						commands={[
-							{
-								modifiers: ["Meta"],
-								keyboardKey: "KeyK",
-								label: "Close",
-							},
-						]}
-					/>
+					{showConfim ? (
+						<Confirm onYes={handleReset} onBoth={() => setShowConfirm(false)} />
+					) : (
+						<Commands
+							commands={[
+								{
+									modifiers: ["Meta"],
+									keyboardKey: "KeyR",
+									label: "Reset",
+								},
+								{
+									modifiers: ["Meta"],
+									keyboardKey: "KeyK",
+									label: "Close",
+								},
+							]}
+						/>
+					)}
 				</div>
 			</div>
 			<Separator />
@@ -155,14 +235,24 @@ export function Settings({
 				<div className="flex flex-col justify-between gap-1">
 					<div className="flex justify-between">
 						Hotkey{config.hotkeys.length > 1 ? "s" : null}
-						<Command
-							disabled={addingAlias}
-							modifiers={["Meta"]}
-							keyboardKey="KeyT"
-							label={addingHotkey ? "Abort" : "Add"}
+						<Commands
+							commands={[
+								{
+									disabled: disableRemoveHotkey,
+									modifiers: ["Shift", "Meta"],
+									keyboardKey: "KeyT",
+									label: mode === "removeHotkey" ? "Abort" : "Remove",
+								},
+								{
+									disabled: disableAddHotkey,
+									modifiers: ["Meta"],
+									keyboardKey: "KeyT",
+									label: mode === "addHotkey" ? "Abort" : "Add",
+								},
+							]}
 						/>
 					</div>
-					<div className="flex gap-2.5">
+					<div className="flex flex-wrap gap-2.5">
 						{hasHotkeys ? (
 							config.hotkeys.map((hotkey) => {
 								return (
@@ -173,33 +263,56 @@ export function Settings({
 									/>
 								);
 							})
-						) : addingHotkey ? null : (
-							<span className="opacity-35">–</span>
+						) : mode === "addHotkey" ? null : (
+							<span className="text-sm opacity-35">–</span>
 						)}
-						{addingHotkey && <div>Adding</div>}
+						{mode === "addHotkey" && <div>Adding</div>}
 					</div>
 				</div>
 				<div className="flex flex-col justify-between gap-1">
 					<div className="flex justify-between">
 						Alias{config.aliases.length > 1 ? "es" : null}
-						<Command
-							disabled={addingHotkey}
-							modifiers={["Meta"]}
-							keyboardKey="KeyL"
-							label={addingAlias ? "Abort" : "Add"}
+						<Commands
+							commands={[
+								{
+									disabled: disableRemoveAlias,
+									modifiers: ["Shift", "Meta"],
+									keyboardKey: "KeyL",
+									label: mode === "removeAlias" ? "Abort" : "Remove",
+								},
+								{
+									disabled: disableAddAlias,
+									modifiers: ["Meta"],
+									keyboardKey: "KeyL",
+									label: mode === "addAlias" ? "Abort" : "Add",
+								},
+							]}
 						/>
 					</div>
-					<div className="flex items-start gap-1">
+					<div className="flex flex-wrap items-start gap-1">
 						{hasAliases ? (
-							config.aliases.map((alias) => {
-								return <Alias key={alias}>{alias}</Alias>;
+							config.aliases.map((alias, i) => {
+								return (
+									<div className="relative" key={alias}>
+										{mode === "removeAlias" && (
+											<button
+												className="-bottom-1.5 -right-1.5 absolute z-[1] flex size-3.5 items-center justify-center rounded-full border border-white bg-red-400 text-[8px]"
+												type="button"
+											>
+												<span className="relative top-[1px]">{i + 1}</span>
+											</button>
+										)}
+										<Alias>{alias}</Alias>
+									</div>
+								);
 							})
-						) : addingAlias ? null : (
-							<span className="opacity-35">–</span>
+						) : mode === "addAlias" ? null : (
+							<span className="text-sm opacity-35">–</span>
 						)}
-						{addingAlias && (
+						{mode === "addAlias" && (
 							<ReactFocusLock className="flex gap-1">
 								<input
+									className="flex h-[1.25rem] items-center rounded-lg border border-slate-500 px-1.5 text-sm"
 									value={alias}
 									onChange={(e) => {
 										setAlias(e.currentTarget.value);
@@ -208,43 +321,20 @@ export function Settings({
 										[
 											"Enter",
 											() => {
-												setSettings((draft) => {
-													if (typeof configIndex !== "number") return draft;
-
-													const exists =
-														configIndex !== -1 && configIndex < draft.length;
-
-													const c: Config = exists
-														? draft[configIndex]
-														: {
-																id: configId,
-																name: configName,
-																aliases: [alias],
-																hotkeys: [],
-																variant: configVariant,
-																path: configPath,
-															};
-
-													if (!exists) {
-														draft.push(c);
-														return draft;
-													}
-
-													if (draft[configIndex].aliases.includes(alias)) {
-														return draft;
-													}
-
-													draft[configIndex].aliases.push(alias);
-
-													return draft;
+												addAlias({
+													alias,
+													id: configId,
+													defaults: {
+														name: configName,
+														variant: configVariant,
+														path: configPath,
+													},
 												});
-												setAddingAlias(false);
-												setAlias("");
+												setMode(null);
 											},
 										],
 									])}
 									placeholder="alias"
-									className="!text-sm flex h-[1.25rem] items-center rounded-lg border border-slate-500 px-1.5"
 								/>
 								<Command modifiers={[]} keyboardKey="Enter" label={"Save"} />
 							</ReactFocusLock>

@@ -3,8 +3,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { cn } from "./styles/utils";
 import Fuse from "fuse.js";
-import { useAtom, useAtomValue } from "jotai";
-import { disableEscapeAtom, indexAtom, searchAtom } from "./jotai";
+import { useAtom } from "jotai";
+import { indexAtom, searchAtom } from "./jotai";
 import { useResetAtom } from "jotai/utils";
 import { getHotkeyHandler, useHotkeys } from "@mantine/hooks";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
@@ -13,7 +13,6 @@ import { Settings } from "./components/Settings";
 import { Commands, type CommandType } from "./components/Command";
 
 export function App() {
-	const disableEscape = useAtomValue(disableEscapeAtom);
 	const [search, setSearch] = useAtom(searchAtom);
 	const resetSearch = useResetAtom(searchAtom);
 
@@ -103,13 +102,7 @@ export function App() {
 
 	useHotkeys(
 		[
-			[
-				"Escape",
-				() => {
-					if (disableEscape) return;
-					close();
-				},
-			],
+			["Escape", close],
 			["Mod+K", toggleSettings],
 		],
 		[],
@@ -117,12 +110,7 @@ export function App() {
 
 	return (
 		<div className="relative flex size-full max-h-full flex-col items-stretch justify-start overflow-hidden">
-			<ReactFocusLock
-				className="relative flex items-center"
-				disabled={showSettings}
-				autoFocus={!showSettings}
-				noFocusGuards={showSettings}
-			>
+			<ReactFocusLock className="relative flex items-center">
 				<input
 					type="text"
 					name="text"
@@ -145,7 +133,6 @@ export function App() {
 								handleLaunch(current?.item.path);
 							},
 						],
-						// ["mod+K", toggleSettings],
 					])}
 					className={cn(
 						"w-full rounded-2xl bg-gray-900/90 px-3.5 py-3 text-white backdrop-blur-sm",

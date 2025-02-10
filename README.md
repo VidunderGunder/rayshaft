@@ -10,15 +10,17 @@ bun dev
 ## TODO
 
 - [x] Open search with hotkey
-- [ ] Configure search hotkey
 - [ ] Search (search)
   - [x] Search
   - [x] Basic app launcher
   - [x] Hotkey proof of concept
-  - [ ] Add hotkeys 👈
-  - [ ] Remove hotkeys
   - [x] Add aliases
-  - [ ] Remove aliases
+  - [x] Remove aliases
+  - [ ] Use aliases 👈
+  - [ ] Add hotkeys
+  - [ ] Remove hotkeys
+  - [ ] Use hotkeys
+- [ ] Configure search hotkey
 - [ ] Calculator (search)
   - [ ] Math
   - [ ] Currency converter

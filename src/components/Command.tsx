@@ -3,15 +3,17 @@ import type { Modifier, KeyboardKey } from "@/types/keyboard";
 import { type ReactNode, type ComponentProps, Fragment } from "react";
 import { Keyboard, useModifiers } from "./Keyboard";
 import { Separator } from "./shadcn/separator";
+import { useHotkeys } from "@mantine/hooks";
 
 export type CommandType = {
 	modifiers: Modifier[];
 	keyboardKey: KeyboardKey;
 	label: ReactNode;
+	disabled?: boolean;
 };
 
 export type CommandProps = {
-	disabled?: boolean;
+	//
 } & CommandType &
 	Omit<ComponentProps<"div">, "label" | "children">;
 
@@ -96,6 +98,60 @@ export function Commands({ commands, className, ...props }: CommandsProps) {
 					</Fragment>
 				);
 			})}
+		</div>
+	);
+}
+
+type ConfirmProps = {
+	onYes: () => void;
+	onNo?: () => void;
+	onBoth?: () => void;
+} & ComponentProps<"div">;
+
+export function Confirm({
+	onYes,
+	onNo,
+	onBoth,
+	className,
+	...props
+}: ConfirmProps) {
+	useHotkeys(
+		[
+			[
+				"Y",
+				() => {
+					onYes?.();
+					onBoth?.();
+				},
+			],
+			[
+				"N",
+				() => {
+					onNo?.();
+					onBoth?.();
+				},
+			],
+		],
+		[],
+	);
+
+	return (
+		<div className={cn("flex items-center gap-3", className)} {...props}>
+			<div className="pr-2 text-sm text-white/75 ">Sure?</div>
+			<Commands
+				commands={[
+					{
+						keyboardKey: "KeyY",
+						modifiers: [],
+						label: "Yes",
+					},
+					{
+						keyboardKey: "KeyN",
+						modifiers: [],
+						label: "No",
+					},
+				]}
+			/>
 		</div>
 	);
 }

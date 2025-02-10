@@ -9,7 +9,7 @@ export function Alias({ children, className, ...props }: AliasProps) {
 	return (
 		<div
 			className={cn(
-				"rounded-md bg-gray-400 px-1.5 py-0 text-gray-800 text-sm",
+				"text-nowrap rounded-md bg-gray-400 px-1.5 py-0 text-gray-800 text-sm",
 				className,
 			)}
 			{...props}
