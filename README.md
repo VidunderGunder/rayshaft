@@ -15,8 +15,10 @@ bun dev
   - [x] Search
   - [x] Basic app launcher
   - [x] Hotkey proof of concept
-  - [ ] Configurable hotkeys 👈
-  - [ ] Configurable aliases
+  - [ ] Add hotkeys 👈
+  - [ ] Remove hotkeys
+  - [x] Add aliases
+  - [ ] Remove aliases
 - [ ] Calculator (search)
   - [ ] Math
   - [ ] Currency converter
