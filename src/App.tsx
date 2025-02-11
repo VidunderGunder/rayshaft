@@ -12,7 +12,7 @@ import ReactFocusLock from "react-focus-lock";
 import { Settings } from "./components/Settings";
 import { Commands, type CommandType } from "./components/Command";
 import { Alias } from "./components/Alias";
-import { Calculator, isMath, solve } from "./components/Calculator";
+import { Calculator, solve } from "./components/Calculator";
 
 export function App() {
 	const [search, setSearch] = useAtom(searchAtom);
