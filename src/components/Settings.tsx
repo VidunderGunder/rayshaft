@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useState, type ComponentProps } from "react";
+import {
+	type Dispatch,
+	useCallback,
+	useEffect,
+	useState,
+	type ComponentProps,
+} from "react";
 import { cn } from "@/styles/utils";
 import ReactFocusLock from "react-focus-lock";
 import { Command, Commands, Confirm, HotkeyInput } from "./Command";
@@ -27,6 +33,8 @@ export type SettingsProps = {
 	configPath?: string;
 } & Omit<ComponentProps<"div">, "children">;
 
+type Mode = "addHotkey" | "addAlias" | "removeHotkey" | "removeAlias" | null;
+
 export function Settings({
 	className,
 	open = false,
@@ -41,9 +49,7 @@ export function Settings({
 	// const reset = useResetAtom(settingsAtom);
 	// reset();
 
-	const [mode, setMode] = useState<
-		"addHotkey" | "addAlias" | "removeHotkey" | "removeAlias" | null
-	>(null);
+	const [mode, setMode] = useState<Mode>(null);
 
 	const [showConfim, setShowConfirm] = useState(false);
 	const [alias, setAlias] = useState("");
@@ -111,6 +117,235 @@ export function Settings({
 		}
 	}
 
+	useEffect(() => {
+		if (!open) {
+			onClose();
+		}
+	}, [open, onClose]);
+
+	useEffect(() => {
+		if (mode === null) {
+			setAlias("");
+		}
+	}, [mode]);
+
+	if (!config) return;
+
+	return (
+		<>
+			{open && (
+				<SettingsHotkeys
+					open={open}
+					disableAddHotkey={disableAddHotkey}
+					mode={mode}
+					setMode={setMode}
+					disableAddAlias={disableAddAlias}
+					disableRemoveHotkey={disableRemoveHotkey}
+					disableRemoveAlias={disableRemoveAlias}
+					setShowConfirm={setShowConfirm}
+					remove={remove}
+				/>
+			)}
+			<ReactFocusLock
+				disabled={!open}
+				className={cn(
+					"flex flex-col gap-[11px] bg-gray-900/95 px-3.5 py-3 text-white [box-shadow:0_0_0_3px_rgba(255,255,255,0.5)]",
+					open ? "" : "hidden",
+					className,
+				)}
+				{...props}
+			>
+				<div className="flex items-center justify-between">
+					<div className="font-black">{config.name ?? "Configuration"}</div>
+					<div>
+						{showConfim ? (
+							<Confirm
+								onYes={handleReset}
+								onBoth={() => setShowConfirm(false)}
+							/>
+						) : (
+							<Commands
+								commands={[
+									{
+										modifiers: ["Meta"],
+										keyboardKey: "KeyR",
+										label: "Reset",
+									},
+									{
+										modifiers: ["Meta"],
+										keyboardKey: "KeyK",
+										label: "Close",
+									},
+								]}
+							/>
+						)}
+					</div>
+				</div>
+				<Separator />
+				<div className="flex flex-col gap-4">
+					<div className="flex flex-col justify-between gap-1">
+						<div className="flex justify-between">
+							Hotkey{config.hotkeys.length > 1 ? "s" : null}
+							<Commands
+								commands={[
+									{
+										disabled: disableRemoveHotkey,
+										modifiers: ["Shift", "Meta"],
+										keyboardKey: "KeyT",
+										label: mode === "removeHotkey" ? "Done" : "Remove",
+									},
+									{
+										disabled: disableAddHotkey,
+										modifiers: ["Meta"],
+										keyboardKey: "KeyT",
+										label: mode === "addHotkey" ? "Abort" : "Add",
+									},
+								]}
+							/>
+						</div>
+						<div className="flex flex-wrap gap-2.5">
+							{hasHotkeys ? (
+								config.hotkeys.map((hotkey, i) => {
+									return (
+										<div
+											className="relative"
+											key={[...hotkey.modifiers, ...hotkey.keyboardKey].join(
+												"-",
+											)}
+										>
+											{mode === "removeHotkey" && (
+												<button
+													className="-bottom-1.5 -right-1.5 absolute z-[1] flex size-3.5 items-center justify-center rounded-full border border-white bg-red-400 text-[8px]"
+													type="button"
+												>
+													<span className="relative top-[1px]">{i + 1}</span>
+												</button>
+											)}
+											<Command {...hotkey} label={null} />
+										</div>
+									);
+								})
+							) : mode === "addHotkey" ? null : (
+								<span className="text-sm opacity-35">–</span>
+							)}
+							{mode === "addHotkey" && (
+								<div>
+									<HotkeyInput
+										onHotkey={(hotkey) => {
+											addHotkey({
+												hotkey,
+												id: configId,
+												defaults: {
+													name: configName,
+													variant: configVariant,
+													path: configPath,
+												},
+											});
+											setMode(null);
+										}}
+									/>
+								</div>
+							)}
+						</div>
+					</div>
+					<div className="flex flex-col justify-between gap-1">
+						<div className="flex justify-between">
+							Alias{config.aliases.length > 1 ? "es" : null}
+							<Commands
+								commands={[
+									{
+										disabled: disableRemoveAlias,
+										modifiers: ["Shift", "Meta"],
+										keyboardKey: "KeyL",
+										label: mode === "removeAlias" ? "Done" : "Remove",
+									},
+									{
+										disabled: disableAddAlias,
+										modifiers: ["Meta"],
+										keyboardKey: "KeyL",
+										label: mode === "addAlias" ? "Abort" : "Add",
+									},
+								]}
+							/>
+						</div>
+						<div className="flex flex-wrap items-start gap-1">
+							{hasAliases ? (
+								config.aliases.map((alias, i) => {
+									return (
+										<div className="relative" key={alias}>
+											{mode === "removeAlias" && (
+												<button
+													className="-bottom-1.5 -right-1.5 absolute z-[1] flex size-3.5 items-center justify-center rounded-full border border-white bg-red-400 text-[8px]"
+													type="button"
+												>
+													<span className="relative top-[1px]">{i + 1}</span>
+												</button>
+											)}
+											<Alias>{alias}</Alias>
+										</div>
+									);
+								})
+							) : mode === "addAlias" ? null : (
+								<span className="text-sm opacity-35">–</span>
+							)}
+							{mode === "addAlias" && (
+								<ReactFocusLock className="flex gap-1">
+									<input
+										className="flex h-[1.25rem] items-center rounded-lg border border-slate-500 px-1.5 text-sm"
+										value={alias}
+										onChange={(e) => {
+											setAlias(e.currentTarget.value);
+										}}
+										onKeyDown={getHotkeyHandler([
+											[
+												"Enter",
+												() => {
+													addAlias({
+														alias,
+														id: configId,
+														defaults: {
+															name: configName,
+															variant: configVariant,
+															path: configPath,
+														},
+													});
+													setMode(null);
+												},
+											],
+										])}
+										placeholder="alias"
+									/>
+									<Command modifiers={[]} keyboardKey="Enter" label={"Save"} />
+								</ReactFocusLock>
+							)}
+						</div>
+					</div>
+				</div>
+			</ReactFocusLock>
+		</>
+	);
+}
+function SettingsHotkeys({
+	open,
+	disableAddHotkey,
+	mode,
+	setMode,
+	disableAddAlias,
+	disableRemoveHotkey,
+	disableRemoveAlias,
+	setShowConfirm,
+	remove,
+}: {
+	open: boolean;
+	disableAddHotkey: boolean;
+	mode: string | null;
+	setMode: Dispatch<React.SetStateAction<Mode>>;
+	disableAddAlias: boolean;
+	disableRemoveHotkey: boolean;
+	disableRemoveAlias: boolean;
+	setShowConfirm: Dispatch<React.SetStateAction<boolean>>;
+	remove: (i: number) => void;
+}) {
 	useHotkeys(
 		[
 			[
@@ -192,192 +427,5 @@ export function Settings({
 		],
 		[],
 	);
-
-	useEffect(() => {
-		if (!open) {
-			onClose();
-		}
-	}, [open, onClose]);
-
-	useEffect(() => {
-		if (mode === null) {
-			setAlias("");
-		}
-	}, [mode]);
-
-	if (!config) return;
-
-	return (
-		<ReactFocusLock
-			disabled={!open}
-			className={cn(
-				"flex flex-col gap-[11px] bg-gray-900/95 px-3.5 py-3 text-white [box-shadow:0_0_0_3px_rgba(255,255,255,0.5)]",
-				open ? "" : "hidden",
-				className,
-			)}
-			{...props}
-		>
-			<div className="flex items-center justify-between">
-				<div className="font-black">{config.name ?? "Configuration"}</div>
-				<div>
-					{showConfim ? (
-						<Confirm onYes={handleReset} onBoth={() => setShowConfirm(false)} />
-					) : (
-						<Commands
-							commands={[
-								{
-									modifiers: ["Meta"],
-									keyboardKey: "KeyR",
-									label: "Reset",
-								},
-								{
-									modifiers: ["Meta"],
-									keyboardKey: "KeyK",
-									label: "Close",
-								},
-							]}
-						/>
-					)}
-				</div>
-			</div>
-			<Separator />
-			<div className="flex flex-col gap-4">
-				<div className="flex flex-col justify-between gap-1">
-					<div className="flex justify-between">
-						Hotkey{config.hotkeys.length > 1 ? "s" : null}
-						<Commands
-							commands={[
-								{
-									disabled: disableRemoveHotkey,
-									modifiers: ["Shift", "Meta"],
-									keyboardKey: "KeyT",
-									label: mode === "removeHotkey" ? "Done" : "Remove",
-								},
-								{
-									disabled: disableAddHotkey,
-									modifiers: ["Meta"],
-									keyboardKey: "KeyT",
-									label: mode === "addHotkey" ? "Abort" : "Add",
-								},
-							]}
-						/>
-					</div>
-					<div className="flex flex-wrap gap-2.5">
-						{hasHotkeys ? (
-							config.hotkeys.map((hotkey, i) => {
-								return (
-									<div
-										className="relative"
-										key={[...hotkey.modifiers, ...hotkey.keyboardKey].join("-")}
-									>
-										{mode === "removeHotkey" && (
-											<button
-												className="-bottom-1.5 -right-1.5 absolute z-[1] flex size-3.5 items-center justify-center rounded-full border border-white bg-red-400 text-[8px]"
-												type="button"
-											>
-												<span className="relative top-[1px]">{i + 1}</span>
-											</button>
-										)}
-										<Command {...hotkey} label={null} />
-									</div>
-								);
-							})
-						) : mode === "addHotkey" ? null : (
-							<span className="text-sm opacity-35">–</span>
-						)}
-						{mode === "addHotkey" && (
-							<div>
-								<HotkeyInput
-									onHotkey={(hotkey) => {
-										addHotkey({
-											hotkey,
-											id: configId,
-											defaults: {
-												name: configName,
-												variant: configVariant,
-												path: configPath,
-											},
-										});
-										setMode(null);
-									}}
-								/>
-							</div>
-						)}
-					</div>
-				</div>
-				<div className="flex flex-col justify-between gap-1">
-					<div className="flex justify-between">
-						Alias{config.aliases.length > 1 ? "es" : null}
-						<Commands
-							commands={[
-								{
-									disabled: disableRemoveAlias,
-									modifiers: ["Shift", "Meta"],
-									keyboardKey: "KeyL",
-									label: mode === "removeAlias" ? "Done" : "Remove",
-								},
-								{
-									disabled: disableAddAlias,
-									modifiers: ["Meta"],
-									keyboardKey: "KeyL",
-									label: mode === "addAlias" ? "Abort" : "Add",
-								},
-							]}
-						/>
-					</div>
-					<div className="flex flex-wrap items-start gap-1">
-						{hasAliases ? (
-							config.aliases.map((alias, i) => {
-								return (
-									<div className="relative" key={alias}>
-										{mode === "removeAlias" && (
-											<button
-												className="-bottom-1.5 -right-1.5 absolute z-[1] flex size-3.5 items-center justify-center rounded-full border border-white bg-red-400 text-[8px]"
-												type="button"
-											>
-												<span className="relative top-[1px]">{i + 1}</span>
-											</button>
-										)}
-										<Alias>{alias}</Alias>
-									</div>
-								);
-							})
-						) : mode === "addAlias" ? null : (
-							<span className="text-sm opacity-35">–</span>
-						)}
-						{mode === "addAlias" && (
-							<ReactFocusLock className="flex gap-1">
-								<input
-									className="flex h-[1.25rem] items-center rounded-lg border border-slate-500 px-1.5 text-sm"
-									value={alias}
-									onChange={(e) => {
-										setAlias(e.currentTarget.value);
-									}}
-									onKeyDown={getHotkeyHandler([
-										[
-											"Enter",
-											() => {
-												addAlias({
-													alias,
-													id: configId,
-													defaults: {
-														name: configName,
-														variant: configVariant,
-														path: configPath,
-													},
-												});
-												setMode(null);
-											},
-										],
-									])}
-									placeholder="alias"
-								/>
-								<Command modifiers={[]} keyboardKey="Enter" label={"Save"} />
-							</ReactFocusLock>
-						)}
-					</div>
-				</div>
-			</div>
-		</ReactFocusLock>
-	);
+	return null;
 }
