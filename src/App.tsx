@@ -12,6 +12,7 @@ import ReactFocusLock from "react-focus-lock";
 import { Settings } from "./components/Settings";
 import { Commands, type CommandType } from "./components/Command";
 import { Alias } from "./components/Alias";
+import { Calculator, isMath, solve } from "./components/Calculator";
 
 export function App() {
 	const [search, setSearch] = useAtom(searchAtom);
@@ -110,6 +111,10 @@ export function App() {
 		[],
 	);
 
+	const calc = solve(search);
+
+	const hasOutput = showResults || calc;
+
 	return (
 		<div className="relative flex size-full max-h-full flex-col items-stretch justify-start overflow-hidden">
 			<ReactFocusLock className="relative flex items-center">
@@ -138,69 +143,72 @@ export function App() {
 					])}
 					className={cn(
 						"w-full rounded-2xl bg-gray-900/90 px-3.5 py-3 text-white backdrop-blur-sm",
-						showResults ? "rounded-b-none" : "",
+						hasOutput ? "rounded-b-none" : "",
 					)}
 				/>
 			</ReactFocusLock>
-			{showResults && (
-				<Virtuoso
-					className="rounded-b-2xl bg-gray-900/90 text-white backdrop-blur-sm"
-					style={{
-						height: 48 * results.length,
-						maxHeight: 48 * 10,
-					}}
-					ref={virtuoso}
-					data={results}
-					itemContent={(i, result) => {
-						const { item } = result;
-						const config = settings.find((c) => c.id === item.path);
-						const itemShortcut: CommandType = {
-							modifiers: config?.hotkeys[0]?.modifiers ?? [],
-							keyboardKey: config?.hotkeys[0]?.keyboardKey ?? "",
-							label: config?.variant === "App" ? "open" : null,
-						};
-						const isShortcut =
-							!!itemShortcut.keyboardKey && !!itemShortcut.modifiers.length;
-						const isFocused = i === index;
+			<div className="rounded-b-2xl bg-gray-900/90 text-white backdrop-blur-sm">
+				<Calculator className="px-3.5 py-3" output={calc} />
+				{showResults && (
+					<Virtuoso
+						className=""
+						style={{
+							height: 48 * results.length,
+							maxHeight: 48 * 10,
+						}}
+						ref={virtuoso}
+						data={results}
+						itemContent={(i, result) => {
+							const { item } = result;
+							const config = settings.find((c) => c.id === item.path);
+							const itemShortcut: CommandType = {
+								modifiers: config?.hotkeys[0]?.modifiers ?? [],
+								keyboardKey: config?.hotkeys[0]?.keyboardKey ?? "",
+								label: config?.variant === "App" ? "open" : null,
+							};
+							const isShortcut =
+								!!itemShortcut.keyboardKey && !!itemShortcut.modifiers.length;
+							const isFocused = i === index;
 
-						const commands: CommandType[] = [];
-						if (isFocused)
-							commands.push({
-								keyboardKey: "KeyK",
-								modifiers: ["Meta"],
-								label: "Config",
-							});
-						if (isShortcut) commands.push(itemShortcut);
-						return (
-							<span
-								key={item.path}
-								className={cn(
-									"relative flex size-full items-stretch justify-between",
-									isFocused ? "bg-white/10" : "",
-								)}
-							>
-								<button
-									type="button"
-									className="flex flex-1 justify-between px-3.5 py-3 text-left hover:bg-white/5"
-									onClick={() => void handleLaunch(item.path)}
+							const commands: CommandType[] = [];
+							if (isFocused)
+								commands.push({
+									keyboardKey: "KeyK",
+									modifiers: ["Meta"],
+									label: "Config",
+								});
+							if (isShortcut) commands.push(itemShortcut);
+							return (
+								<span
+									key={item.path}
+									className={cn(
+										"relative flex size-full items-stretch justify-between",
+										isFocused ? "bg-white/10" : "",
+									)}
 								>
-									<div className="flex items-center gap-3">
-										{item.name}
-										<div className="flex items-center gap-1">
-											{config?.aliases.map((alias) => {
-												return <Alias key={alias}>{alias}</Alias>;
-											})}
+									<button
+										type="button"
+										className="flex flex-1 justify-between px-3.5 py-3 text-left hover:bg-white/5"
+										onClick={() => void handleLaunch(item.path)}
+									>
+										<div className="flex items-center gap-3">
+											{item.name}
+											<div className="flex items-center gap-1">
+												{config?.aliases.map((alias) => {
+													return <Alias key={alias}>{alias}</Alias>;
+												})}
+											</div>
 										</div>
-									</div>
-									<div className="pr-3.5">
-										<Commands commands={commands} />
-									</div>
-								</button>
-							</span>
-						);
-					}}
-				/>
-			)}
+										<div className="pr-3.5">
+											<Commands commands={commands} />
+										</div>
+									</button>
+								</span>
+							);
+						}}
+					/>
+				)}
+			</div>
 			<Settings
 				className={cn("absolute inset-x-12 top-12 rounded-2xl")}
 				open={showSettings}
