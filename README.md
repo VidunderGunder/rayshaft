@@ -26,9 +26,9 @@ bun dev
   - [ ] Open file in specific app
 - [ ] Configure search hotkey
 - [ ] Calculator (search)
-  - [ ] Math
-  - [ ] Currency converter
+  - [x] Math
   - [ ] Unit converter
+  - [ ] Currency converter
 - [ ] Hotkey laucher (launcher key -> )
 - [ ] URL launcher (extension)
 - [ ] Clipboard history (extension)
