@@ -1,4 +1,10 @@
+import type { Hotkey } from "@/components/Command";
 import type { StringWithSuggestions } from ".";
+
+export type SafeHotkey = {
+	modifiers: SafeHotkeyModifier[];
+	keyboard_key: SafeHotkeyKey;
+};
 
 export type Modifier = StringWithSuggestions<
 	| "Shift"
@@ -104,6 +110,8 @@ export const hotkeyModifiers = [
 	"Meta",
 ] as const satisfies Modifier[];
 
+export type SafeHotkeyModifier = (typeof hotkeyModifiers)[number];
+
 export const hotkeyKeys = [
 	"KeyA",
 	"KeyB",
@@ -142,3 +150,96 @@ export const hotkeyKeys = [
 	"Digit8",
 	"Digit9",
 ] as const satisfies KeyboardKey[];
+
+export type SafeHotkeyKey = (typeof hotkeyKeys)[number];
+
+export const hotkeyModifierWebToPlugin = {
+	Meta: "Command",
+	Alt: "Option",
+	Control: "Control",
+	Shift: "Shift",
+} as const satisfies Record<SafeHotkeyModifier, string>;
+
+export function isHotkeyModifier(
+	modifier: string,
+): modifier is SafeHotkeyModifier {
+	return (hotkeyModifiers as string[]).includes(modifier);
+}
+
+export function safeHotkeyModifier(
+	modifier: string,
+): SafeHotkeyModifier | undefined {
+	if (!isHotkeyModifier(modifier)) return;
+	return modifier;
+}
+
+export const hotkeyKeyWebToPlugin = {
+	KeyA: "A",
+	KeyB: "B",
+	KeyC: "C",
+	KeyD: "D",
+	KeyE: "E",
+	KeyF: "F",
+	KeyG: "G",
+	KeyH: "H",
+	KeyI: "I",
+	KeyJ: "J",
+	KeyK: "K",
+	KeyL: "L",
+	KeyM: "M",
+	KeyN: "N",
+	KeyO: "O",
+	KeyP: "P",
+	KeyQ: "Q",
+	KeyR: "R",
+	KeyS: "S",
+	KeyT: "T",
+	KeyU: "U",
+	KeyV: "V",
+	KeyW: "W",
+	KeyX: "X",
+	KeyY: "Y",
+	KeyZ: "Z",
+	Digit0: "0",
+	Digit1: "1",
+	Digit2: "2",
+	Digit3: "3",
+	Digit4: "4",
+	Digit5: "5",
+	Digit6: "6",
+	Digit7: "7",
+	Digit8: "8",
+	Digit9: "9",
+} as const satisfies Record<SafeHotkeyKey, string>;
+
+export function isHotkeyKey(
+	keyboard_key: string,
+): keyboard_key is SafeHotkeyKey {
+	return (hotkeyKeys as string[]).includes(keyboard_key);
+}
+
+export function getSafeHotkeyKey(
+	keyboard_key: string,
+): SafeHotkeyKey | undefined {
+	if (!isHotkeyKey(keyboard_key)) return;
+	return keyboard_key;
+}
+
+export function getSafeHotkey(hotkey: Hotkey): SafeHotkey | undefined {
+	for (const modifier of hotkey.modifiers) {
+		if (!isHotkeyModifier(modifier)) return;
+	}
+	if (!isHotkeyKey(hotkey.keyboard_key)) return;
+	return hotkey as SafeHotkey;
+}
+
+export function getSafeHotkeyString(hotkey: Hotkey): string | undefined {
+	const safeHotkey = getSafeHotkey(hotkey);
+	if (!safeHotkey) return;
+	return [
+		...safeHotkey.modifiers.map(
+			(modifier) => hotkeyModifierWebToPlugin[modifier as SafeHotkeyModifier],
+		),
+		hotkeyKeyWebToPlugin[safeHotkey.keyboard_key],
+	].join("+");
+}

@@ -7,13 +7,17 @@ import {
 } from "react";
 import { cn } from "@/styles/utils";
 import ReactFocusLock from "react-focus-lock";
-import { Command, Commands, Confirm, HotkeyInput } from "./Command";
+import {
+	Command,
+	Commands,
+	Confirm,
+	type Hotkey,
+	HotkeyInput,
+} from "./Command";
 import { Separator } from "./shadcn/separator";
-import type { KeyboardKey, Modifier } from "@/types/keyboard";
 import { getHotkeyHandler, useHotkeys } from "@mantine/hooks";
 import { Alias } from "./Alias";
-import { settingsAtom, useSettings } from "@/jotai";
-import { useResetAtom } from "jotai/utils";
+import { useConfigs } from "@/jotai";
 
 export type ConfigVariant = "App" | "Url" | "Extension";
 
@@ -22,7 +26,7 @@ export type Config = {
 	name: string;
 	variant: ConfigVariant;
 	aliases: string[];
-	hotkeys: { modifiers: Modifier[]; keyboard_key: KeyboardKey }[];
+	hotkeys: Hotkey[];
 	path?: string;
 };
 
@@ -45,8 +49,13 @@ export function Settings({
 	configPath,
 	...props
 }: SettingsProps) {
-	const { addAlias, removeAlias, addHotkey, removeHotkey, settings } =
-		useSettings();
+	const {
+		addAlias,
+		removeAlias,
+		addHotkey,
+		removeHotkey,
+		configs: settings,
+	} = useConfigs();
 	// const reset = useResetAtom(settingsAtom);
 	// reset();
 

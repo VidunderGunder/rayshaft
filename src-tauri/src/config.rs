@@ -1,7 +1,7 @@
 use std::sync::Mutex;
 
 use serde::{Deserialize, Serialize};
-use tauri::{AppHandle, Manager, State};
+use tauri::State;
 
 use crate::AppState;
 
@@ -90,5 +90,5 @@ pub fn sync_configs(state: State<'_, Mutex<AppState>>, configs: Configs) -> Vec<
 
     state.configs = configs;
 
-    state.configs
+    state.configs.clone()
 }

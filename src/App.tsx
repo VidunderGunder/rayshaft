@@ -4,7 +4,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { cn } from "./styles/utils";
 import Fuse from "fuse.js";
 import { useAtom } from "jotai";
-import { indexAtom, searchAtom, useSettings } from "./jotai";
+import { indexAtom, searchAtom, useConfigs } from "./jotai";
 import { useResetAtom } from "jotai/utils";
 import { getHotkeyHandler, useHotkeys } from "@mantine/hooks";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
@@ -21,7 +21,7 @@ export function App() {
 	const [index, setIndex] = useAtom(indexAtom);
 	const resetIndex = useResetAtom(indexAtom);
 
-	const { settings } = useSettings();
+	const { configs: settings } = useConfigs();
 	const [showSettings, setShowSettings] = useState(false);
 
 	const reset = useCallback(

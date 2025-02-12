@@ -1,1 +1,1 @@
-{"main":{"identifier":"main","description":"Capability for the main window","local":true,"windows":["main"],"permissions":[]}}
+{"main":{"identifier":"main","description":"Capability for the main window","local":true,"windows":["main"],"permissions":["global-shortcut:allow-is-registered","global-shortcut:allow-register","global-shortcut:allow-unregister"]}}

@@ -1,10 +1,21 @@
 import { atomWithStorage } from "jotai/utils";
-import type { Config } from "./components/Settings";
+import type { Config, ConfigVariant } from "./components/Settings";
 import { withImmer } from "jotai-immer";
 import { useAtom } from "jotai";
 import { isEqualHotkey, type Hotkey } from "./components/Command";
 import { invoke } from "@tauri-apps/api/core";
 import { useEffect } from "react";
+import {
+	register,
+	unregister,
+	isRegistered,
+} from "@tauri-apps/plugin-global-shortcut";
+import { launchApp } from "./hooks/useApps";
+import {
+	getSafeHotkey,
+	hotkeyModifierWebToPlugin,
+	getSafeHotkeyString,
+} from "./types/keyboard";
 
 // ASCII Text Generator:
 // https://patorjk.com/software/taag/#p=display&f=Elite&t=Hello%20World
@@ -38,8 +49,8 @@ function syncConfigs(configs: Config[]) {
 	});
 }
 
-export function useSettings() {
-	const [settings, setSettings] = useAtom(settingsAtom);
+export function useConfigs() {
+	const [configs, setConfigs] = useAtom(settingsAtom);
 
 	function addAlias({
 		id,
@@ -53,10 +64,10 @@ export function useSettings() {
 		 */
 		defaults?: Omit<Config, "id" | "aliases" | "hotkeys">;
 	}) {
-		setSettings((draft) => {
+		setConfigs((draft) => {
 			if (alias === "") return;
 
-			const configIndex = id ? settings.findIndex((e) => e.id === id) : -1;
+			const configIndex = id ? configs.findIndex((e) => e.id === id) : -1;
 			const exists = configIndex !== -1 && configIndex < draft.length;
 
 			if (!defaults) return draft;
@@ -95,10 +106,10 @@ export function useSettings() {
 		 */
 		alias: string | number;
 	}) {
-		setSettings((draft) => {
+		setConfigs((draft) => {
 			if (alias === "") return;
 
-			const configIndex = id ? settings.findIndex((e) => e.id === id) : -1;
+			const configIndex = id ? configs.findIndex((e) => e.id === id) : -1;
 			const configExists = configIndex !== -1 && configIndex < draft.length;
 
 			if (!configExists) return draft;
@@ -117,7 +128,7 @@ export function useSettings() {
 		});
 	}
 
-	function addHotkey({
+	async function addHotkey({
 		id,
 		hotkey,
 		defaults,
@@ -129,11 +140,24 @@ export function useSettings() {
 		hotkey: Hotkey;
 		defaults?: Omit<Config, "id" | "aliases" | "hotkeys">;
 	}) {
-		setSettings((draft) => {
-			const configIndex = id ? settings.findIndex((e) => e.id === id) : -1;
-			const configExists = configIndex !== -1 && configIndex < draft.length;
+		const safeHotkey = getSafeHotkey(hotkey);
+		if (!safeHotkey) return;
 
-			if (!defaults) return draft;
+		const safeHotkeyString = getSafeHotkeyString(hotkey);
+		if (!safeHotkeyString) return;
+
+		if (!defaults) return;
+
+		const registered = await isRegistered(safeHotkeyString);
+		if (registered) {
+			return;
+		}
+
+		let shouldRegister = false;
+
+		setConfigs((draft) => {
+			const configIndex = id ? configs.findIndex((e) => e.id === id) : -1;
+			const configExists = configIndex !== -1 && configIndex < draft.length;
 
 			const c: Config = configExists
 				? draft[configIndex]
@@ -141,30 +165,39 @@ export function useSettings() {
 						id,
 						...defaults,
 						aliases: [],
-						hotkeys: [hotkey],
+						hotkeys: [safeHotkey],
 					};
 
 			if (!configExists) {
+				shouldRegister = true;
 				draft.push(c);
 				return draft;
 			}
 
-			const hotkeyIndex =
-				typeof hotkey === "number"
-					? hotkey
-					: draft[configIndex].hotkeys.findIndex((h) =>
-							isEqualHotkey(h, hotkey),
-						);
+			const hotkeyIndex = draft[configIndex].hotkeys.findIndex((h) =>
+				isEqualHotkey(h, hotkey),
+			);
 			const hotkeyExists = hotkeyIndex !== -1;
 
 			if (hotkeyExists) {
 				return draft;
 			}
 
+			shouldRegister = true;
+
 			draft[configIndex].hotkeys.push(hotkey);
 
 			return draft;
 		});
+
+		if (!shouldRegister) return;
+		setTimeout(() => {
+			register(safeHotkeyString, () => {
+				if (defaults.variant === "App") {
+					launchApp(defaults.path);
+				}
+			});
+		}, 1000);
 	}
 
 	function removeHotkey({
@@ -177,8 +210,8 @@ export function useSettings() {
 		 */
 		hotkey: Hotkey | number;
 	}) {
-		setSettings((draft) => {
-			const configIndex = id ? settings.findIndex((e) => e.id === id) : -1;
+		setConfigs((draft) => {
+			const configIndex = id ? configs.findIndex((e) => e.id === id) : -1;
 			const configExists = configIndex !== -1 && configIndex < draft.length;
 
 			if (!configExists) return draft;
@@ -193,6 +226,10 @@ export function useSettings() {
 
 			if (!hotkeyExists) return draft;
 
+			const existingHotkey = configs[configIndex].hotkeys[hotkeyIndex];
+			const existingHotkeyString = getSafeHotkeyString(existingHotkey);
+			if (existingHotkeyString) unregister(existingHotkeyString);
+
 			draft[configIndex].hotkeys.splice(hotkeyIndex, 1);
 
 			return draft;
@@ -200,16 +237,12 @@ export function useSettings() {
 	}
 
 	function reset() {
-		setSettings([]);
+		setConfigs([]);
 	}
 
-	useEffect(() => {
-		syncConfigs(settings);
-	}, [settings]);
-
 	return {
-		settings,
-		setSettings,
+		configs,
+		setConfigs,
 		addAlias,
 		removeAlias,
 		addHotkey,
