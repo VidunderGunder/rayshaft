@@ -4,7 +4,7 @@ import { withImmer } from "jotai-immer";
 import { useAtom } from "jotai";
 import { isEqualHotkey, type Hotkey } from "./components/Command";
 import { invoke } from "@tauri-apps/api/core";
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import {
 	register,
 	unregister,
@@ -51,6 +51,7 @@ function syncConfigs(configs: Config[]) {
 
 export function useConfigs() {
 	const [configs, setConfigs] = useAtom(settingsAtom);
+	const configsExist = configs.length;
 
 	function addAlias({
 		id,
@@ -240,7 +241,34 @@ export function useConfigs() {
 		setConfigs([]);
 	}
 
+	useEffect(() => {
+		syncConfigs(configs);
+	}, [configs]);
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: <We only want initial values>
+	const init = useCallback(
+		function init() {
+			for (const config of configs) {
+				for (const hotkey of config.hotkeys) {
+					const safeHotkeyString = getSafeHotkeyString(hotkey);
+					if (!safeHotkeyString) continue;
+					isRegistered(safeHotkeyString).then((v) => {
+						if (v) return;
+						register(safeHotkeyString, () => {
+							if (config.variant === "App") {
+								launchApp(config.path);
+								return;
+							}
+						});
+					});
+				}
+			}
+		},
+		[configsExist],
+	);
+
 	return {
+		init,
 		configs,
 		setConfigs,
 		addAlias,

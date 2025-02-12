@@ -21,7 +21,7 @@ export function App() {
 	const [index, setIndex] = useAtom(indexAtom);
 	const resetIndex = useResetAtom(indexAtom);
 
-	const { configs: settings } = useConfigs();
+	const { configs: settings, init } = useConfigs();
 	const [showSettings, setShowSettings] = useState(false);
 
 	const reset = useCallback(
@@ -114,6 +114,11 @@ export function App() {
 	const calc = solve(search);
 
 	const hasOutput = showResults || calc;
+
+	useEffect(() => {
+		console.log("Init");
+		init();
+	}, [init]);
 
 	return (
 		<div className="relative flex size-full max-h-full flex-col items-stretch justify-start overflow-hidden">
