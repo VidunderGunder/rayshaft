@@ -3,6 +3,8 @@ import type { Config } from "./components/Settings";
 import { withImmer } from "jotai-immer";
 import { useAtom } from "jotai";
 import { isEqualHotkey, type Hotkey } from "./components/Command";
+import { invoke } from "@tauri-apps/api/core";
+import { useEffect } from "react";
 
 // ASCII Text Generator:
 // https://patorjk.com/software/taag/#p=display&f=Elite&t=Hello%20World
@@ -29,6 +31,12 @@ export const indexAtom = atomWithStorage("index", 0);
 
 const settingsStorageAtom = atomWithStorage<Config[]>("settings", []);
 export const settingsAtom = withImmer(settingsStorageAtom);
+
+function syncConfigs(configs: Config[]) {
+	invoke("sync_configs", {
+		configs,
+	});
+}
 
 export function useSettings() {
 	const [settings, setSettings] = useAtom(settingsAtom);
@@ -125,11 +133,6 @@ export function useSettings() {
 			const configIndex = id ? settings.findIndex((e) => e.id === id) : -1;
 			const configExists = configIndex !== -1 && configIndex < draft.length;
 
-			console.log({
-				configIndex,
-				configExists,
-			});
-
 			if (!defaults) return draft;
 
 			const c: Config = configExists
@@ -154,11 +157,6 @@ export function useSettings() {
 						);
 			const hotkeyExists = hotkeyIndex !== -1;
 
-			console.log({
-				hotkeyIndex,
-				hotkeyExists,
-			});
-
 			if (hotkeyExists) {
 				return draft;
 			}
@@ -182,10 +180,6 @@ export function useSettings() {
 		setSettings((draft) => {
 			const configIndex = id ? settings.findIndex((e) => e.id === id) : -1;
 			const configExists = configIndex !== -1 && configIndex < draft.length;
-			console.log({
-				configIndex,
-				configExists,
-			});
 
 			if (!configExists) return draft;
 
@@ -196,11 +190,6 @@ export function useSettings() {
 							isEqualHotkey(h, hotkey),
 						);
 			const hotkeyExists = hotkeyIndex !== -1;
-
-			console.log({
-				hotkeyIndex,
-				hotkeyExists,
-			});
 
 			if (!hotkeyExists) return draft;
 
@@ -213,6 +202,10 @@ export function useSettings() {
 	function reset() {
 		setSettings([]);
 	}
+
+	useEffect(() => {
+		syncConfigs(settings);
+	}, [settings]);
 
 	return {
 		settings,

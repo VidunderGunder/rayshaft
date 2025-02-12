@@ -19,12 +19,12 @@ import { useHotkeys } from "@mantine/hooks";
 
 export type Hotkey = {
 	modifiers: Modifier[];
-	keyboardKey: KeyboardKey;
+	keyboard_key: KeyboardKey;
 };
 
 export function isEqualHotkey(a: Hotkey, b: Hotkey): boolean {
 	if (a.modifiers.length !== b.modifiers.length) return false;
-	if (a.keyboardKey !== b.keyboardKey) return false;
+	if (a.keyboard_key !== b.keyboard_key) return false;
 
 	for (let i = 0; i < a.modifiers.length; i++) {
 		if (!b.modifiers.includes(a.modifiers[i])) {
@@ -49,7 +49,7 @@ export function Command({
 	disabled = false,
 	className,
 	modifiers,
-	keyboardKey,
+	keyboard_key,
 	label,
 	...props
 }: CommandProps) {
@@ -86,11 +86,11 @@ export function Command({
 				{modifiers.map((code) => (
 					<Keyboard key={code} interactive={!irrelevant} code={code} />
 				))}
-				{keyboardKey && (
+				{keyboard_key && (
 					<Keyboard
-						key={keyboardKey}
+						key={keyboard_key}
 						interactive={!irrelevant}
-						code={keyboardKey}
+						code={keyboard_key}
 					/>
 				)}
 			</div>
@@ -118,7 +118,7 @@ export function Commands({ commands, className, ...props }: CommandsProps) {
 	return (
 		<div className={cn("flex items-center gap-3", className)} {...props}>
 			{commands.map((command, i) => {
-				const key = [...command.modifiers, command.keyboardKey].join("-");
+				const key = [...command.modifiers, command.keyboard_key].join("-");
 				return (
 					<Fragment key={key}>
 						{i > 0 && <CommandSeparator />}
@@ -169,12 +169,12 @@ export function Confirm({
 			<Commands
 				commands={[
 					{
-						keyboardKey: "KeyY",
+						keyboard_key: "KeyY",
 						modifiers: [],
 						label: "Yes",
 					},
 					{
-						keyboardKey: "KeyN",
+						keyboard_key: "KeyN",
 						modifiers: [],
 						label: "No",
 					},
@@ -264,7 +264,7 @@ export function HotkeyInput({
 							setKeys((prev) => [...prev, code]);
 							if (modifiers.length === 0) return;
 							onHotkey({
-								keyboardKey: code,
+								keyboard_key: code,
 								modifiers,
 							});
 						}}

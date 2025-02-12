@@ -163,17 +163,17 @@ export function App() {
 							const config = settings.find((c) => c.id === item.path);
 							const itemShortcut: CommandType = {
 								modifiers: config?.hotkeys[0]?.modifiers ?? [],
-								keyboardKey: config?.hotkeys[0]?.keyboardKey ?? "",
+								keyboard_key: config?.hotkeys[0]?.keyboard_key ?? "",
 								label: config?.variant === "App" ? "open" : null,
 							};
 							const isShortcut =
-								!!itemShortcut.keyboardKey && !!itemShortcut.modifiers.length;
+								!!itemShortcut.keyboard_key && !!itemShortcut.modifiers.length;
 							const isFocused = i === index;
 
 							const commands: CommandType[] = [];
 							if (isFocused)
 								commands.push({
-									keyboardKey: "KeyK",
+									keyboard_key: "KeyK",
 									modifiers: ["Meta"],
 									label: "Config",
 								});

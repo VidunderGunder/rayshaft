@@ -12,7 +12,8 @@ import { Separator } from "./shadcn/separator";
 import type { KeyboardKey, Modifier } from "@/types/keyboard";
 import { getHotkeyHandler, useHotkeys } from "@mantine/hooks";
 import { Alias } from "./Alias";
-import { useSettings } from "@/jotai";
+import { settingsAtom, useSettings } from "@/jotai";
+import { useResetAtom } from "jotai/utils";
 
 export type ConfigVariant = "App" | "Url" | "Extension";
 
@@ -21,7 +22,7 @@ export type Config = {
 	name: string;
 	variant: ConfigVariant;
 	aliases: string[];
-	hotkeys: { modifiers: Modifier[]; keyboardKey: KeyboardKey }[];
+	hotkeys: { modifiers: Modifier[]; keyboard_key: KeyboardKey }[];
 	path?: string;
 };
 
@@ -168,12 +169,12 @@ export function Settings({
 								commands={[
 									{
 										modifiers: ["Meta"],
-										keyboardKey: "KeyR",
+										keyboard_key: "KeyR",
 										label: "Reset",
 									},
 									{
 										modifiers: ["Meta"],
-										keyboardKey: "KeyK",
+										keyboard_key: "KeyK",
 										label: "Close",
 									},
 								]}
@@ -191,13 +192,13 @@ export function Settings({
 									{
 										disabled: disableRemoveHotkey,
 										modifiers: ["Shift", "Meta"],
-										keyboardKey: "KeyT",
+										keyboard_key: "KeyT",
 										label: mode === "removeHotkey" ? "Done" : "Remove",
 									},
 									{
 										disabled: disableAddHotkey,
 										modifiers: ["Meta"],
-										keyboardKey: "KeyT",
+										keyboard_key: "KeyT",
 										label: mode === "addHotkey" ? "Abort" : "Add",
 									},
 								]}
@@ -209,7 +210,7 @@ export function Settings({
 									return (
 										<div
 											className="relative"
-											key={[...hotkey.modifiers, ...hotkey.keyboardKey].join(
+											key={[...hotkey.modifiers, ...hotkey.keyboard_key].join(
 												"-",
 											)}
 										>
@@ -256,13 +257,13 @@ export function Settings({
 									{
 										disabled: disableRemoveAlias,
 										modifiers: ["Shift", "Meta"],
-										keyboardKey: "KeyL",
+										keyboard_key: "KeyL",
 										label: mode === "removeAlias" ? "Done" : "Remove",
 									},
 									{
 										disabled: disableAddAlias,
 										modifiers: ["Meta"],
-										keyboardKey: "KeyL",
+										keyboard_key: "KeyL",
 										label: mode === "addAlias" ? "Abort" : "Add",
 									},
 								]}
@@ -315,7 +316,7 @@ export function Settings({
 										])}
 										placeholder="alias"
 									/>
-									<Command modifiers={[]} keyboardKey="Enter" label={"Save"} />
+									<Command modifiers={[]} keyboard_key="Enter" label={"Save"} />
 								</ReactFocusLock>
 							)}
 						</div>
