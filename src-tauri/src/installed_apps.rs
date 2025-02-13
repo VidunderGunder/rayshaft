@@ -103,8 +103,6 @@ pub fn launch_app(app_path: String) -> Result<(), String> {
         .and_then(|s| s.to_str())
         .ok_or_else(|| "Could not determine app name from path".to_string())?;
 
-    println!("Launching: {}", &app_name);
-
     // Create an AppleScript that:
     // 1. Gets the name of the frontmost application.
     // 2. If it's our target app, hides it.

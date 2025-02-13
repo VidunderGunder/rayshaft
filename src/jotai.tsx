@@ -193,9 +193,11 @@ export function useConfigs() {
 
 		if (!shouldRegister) return;
 		setTimeout(() => {
-			register(safeHotkeyString, () => {
-				if (defaults.variant === "App") {
-					launchApp(defaults.path);
+			register(safeHotkeyString, (event) => {
+				if (event.state === "Pressed") {
+					if (defaults.variant === "App") {
+						launchApp(defaults.path);
+					}
 				}
 			});
 		}, 1000);
@@ -254,10 +256,12 @@ export function useConfigs() {
 					if (!safeHotkeyString) continue;
 					isRegistered(safeHotkeyString).then((v) => {
 						if (v) return;
-						register(safeHotkeyString, () => {
-							if (config.variant === "App") {
-								launchApp(config.path);
-								return;
+						register(safeHotkeyString, (event) => {
+							if (event.state === "Pressed") {
+								if (config.variant === "App") {
+									launchApp(config.path);
+									return;
+								}
 							}
 						});
 					});

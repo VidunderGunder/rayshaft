@@ -20,7 +20,7 @@ bun dev
   - [x] Add hotkeys
   - [x] Remove hotkeys
   - [x] Always show matching alias first
-  - [ ] Use hotkeys 👈
+  - [x] Use hotkeys 👈
 - [ ] File search (extension)
   - [ ] Open file
   - [ ] Open file in specific app
