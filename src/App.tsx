@@ -1,4 +1,4 @@
-import { launchApp, useApps } from "./hooks/useApps";
+import { toggleApp, useApps } from "./hooks/useApps";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { cn } from "./styles/utils";
@@ -44,7 +44,7 @@ export function App() {
 
 	const handleLaunch = useCallback(
 		function handleLaunch(appPath: string | undefined) {
-			launchApp(appPath);
+			toggleApp(appPath);
 			close();
 		},
 		[close],

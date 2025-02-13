@@ -24,7 +24,7 @@ export function useApps(
 	return apps;
 }
 
-export function launchApp(appPath?: string) {
+export function toggleApp(appPath?: string) {
 	if (!appPath) return;
-	invoke("launch_app", { appPath });
+	invoke("toggle_app", { appPath });
 }

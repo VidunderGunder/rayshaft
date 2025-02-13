@@ -28,7 +28,7 @@ fn main() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             installed_apps::list_installed_apps,
-            installed_apps::launch_app,
+            installed_apps::toggle_app,
             command::show,
             command::hide,
             config::sync_configs,

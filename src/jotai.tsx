@@ -10,12 +10,8 @@ import {
 	unregister,
 	isRegistered,
 } from "@tauri-apps/plugin-global-shortcut";
-import { launchApp } from "./hooks/useApps";
-import {
-	getSafeHotkey,
-	hotkeyModifierWebToPlugin,
-	getSafeHotkeyString,
-} from "./types/keyboard";
+import { toggleApp } from "./hooks/useApps";
+import { getSafeHotkey, getSafeHotkeyString } from "./types/keyboard";
 
 // ASCII Text Generator:
 // https://patorjk.com/software/taag/#p=display&f=Elite&t=Hello%20World
@@ -196,7 +192,7 @@ export function useConfigs() {
 			register(safeHotkeyString, (event) => {
 				if (event.state === "Pressed") {
 					if (defaults.variant === "App") {
-						launchApp(defaults.path);
+						toggleApp(defaults.path);
 					}
 				}
 			});
@@ -259,7 +255,7 @@ export function useConfigs() {
 						register(safeHotkeyString, (event) => {
 							if (event.state === "Pressed") {
 								if (config.variant === "App") {
-									launchApp(config.path);
+									toggleApp(config.path);
 									return;
 								}
 							}

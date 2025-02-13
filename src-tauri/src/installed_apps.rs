@@ -90,7 +90,7 @@ pub fn list_installed_apps() -> Result<Vec<AppInfo>, String> {
 /// Launch an app given its full path.
 /// On macOS, the "open" command can be used.
 #[tauri::command]
-pub fn launch_app(app_path: String) -> Result<(), String> {
+pub fn toggle_app(app_path: String) -> Result<(), String> {
     // Verify the provided app path exists.
     let path = Path::new(&app_path);
     if !path.exists() {
@@ -103,10 +103,7 @@ pub fn launch_app(app_path: String) -> Result<(), String> {
         .and_then(|s| s.to_str())
         .ok_or_else(|| "Could not determine app name from path".to_string())?;
 
-    // Create an AppleScript that:
-    // 1. Gets the name of the frontmost application.
-    // 2. If it's our target app, hides it.
-    // 3. Otherwise, activates (or launches) our target app.
+    // App toggle: https://brettterpstra.com/2011/01/22/quick-tip-applescript-application-toggle/
     let apple_script = format!(
         r#"
 on run argv
@@ -137,7 +134,7 @@ end run
     let output = Command::new("osascript")
         .arg("-e")
         .arg(apple_script)
-        .arg(app_name)
+        .arg(&app_name)
         .output()
         .map_err(|e| format!("Failed to run AppleScript: {}", e))?;
 
