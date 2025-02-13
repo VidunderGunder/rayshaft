@@ -56,6 +56,13 @@ fn main() {
                 },
             );
 
+            #[cfg(debug_assertions)] // only include this code on debug builds
+            {
+                let window = app.get_webview_window("main").unwrap();
+                window.open_devtools();
+                window.close_devtools();
+            }
+
             Ok(())
         })
         .plugin(hotkeys::build_hotkey_plugin())

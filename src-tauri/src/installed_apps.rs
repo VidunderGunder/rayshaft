@@ -91,9 +91,32 @@ pub fn list_installed_apps() -> Result<Vec<AppInfo>, String> {
 /// On macOS, the "open" command can be used.
 #[tauri::command]
 pub fn launch_app(app_path: String) -> Result<(), String> {
-    Command::new("open")
-        .arg(app_path)
-        .spawn()
-        .map_err(|e| format!("Failed to launch app: {}", e))?;
+    // Verify the provided app path exists.
+    let path = Path::new(&app_path);
+    if !path.exists() {
+        return Err(format!("App path does not exist: {}", app_path));
+    }
+
+    // Extract the app name (e.g., "Safari" from "/Applications/Safari.app")
+    let app_name = path
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .ok_or_else(|| "Could not determine app name from path".to_string())?;
+
+    // Create an AppleScript that:
+    // 1. Gets the name of the frontmost application.
+    // 2. If it's our target app, hides it.
+    // 3. Otherwise, activates (or launches) our target app.
+    let output = Command::new("osascript")
+        .arg("./scripts/launch_app.applescript")
+        .arg(app_name)
+        .output()
+        .map_err(|e| format!("Failed to run AppleScript: {}", e))?;
+
+    if !output.status.success() {
+        let err_msg = String::from_utf8_lossy(&output.stderr);
+        return Err(format!("AppleScript execution failed: {}", err_msg));
+    }
+
     Ok(())
 }
