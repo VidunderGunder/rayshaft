@@ -103,12 +103,42 @@ pub fn launch_app(app_path: String) -> Result<(), String> {
         .and_then(|s| s.to_str())
         .ok_or_else(|| "Could not determine app name from path".to_string())?;
 
+    println!("Launching: {}", &app_name);
+
     // Create an AppleScript that:
     // 1. Gets the name of the frontmost application.
     // 2. If it's our target app, hides it.
     // 3. Otherwise, activates (or launches) our target app.
+    let apple_script = format!(
+        r#"
+on run argv
+    if (count of argv) < 1 then
+        error "Missing argument: appName"
+    end if
+
+    set appName to item 1 of argv
+
+    set startIt to false
+    tell application "System Events"
+        if not (exists process appName) then
+            set startIt to true
+        else if frontmost of process appName then
+            set visible of process appName to false
+        else
+            set frontmost of process appName to true
+        end if
+    end tell
+    if startIt then
+        tell application appName to activate
+    end if
+end run
+        "#,
+    );
+
+    // Execute the AppleScript using `osascript`
     let output = Command::new("osascript")
-        .arg("./scripts/launch_app.applescript")
+        .arg("-e")
+        .arg(apple_script)
         .arg(app_name)
         .output()
         .map_err(|e| format!("Failed to run AppleScript: {}", e))?;

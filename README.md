@@ -19,8 +19,8 @@ bun dev
   - [x] Show aliases in search
   - [x] Add hotkeys
   - [x] Remove hotkeys
+  - [x] Always show matching alias first
   - [ ] Use hotkeys 👈
-  - [ ] Always show matching alias first
 - [ ] File search (extension)
   - [ ] Open file
   - [ ] Open file in specific app

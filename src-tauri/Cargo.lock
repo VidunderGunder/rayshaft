@@ -2633,7 +2633,6 @@ dependencies = [
  "monitor",
  "plist",
  "serde",
- "serde_json",
  "tauri",
  "tauri-build",
  "tauri-nspanel",

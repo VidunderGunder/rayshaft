@@ -9,10 +9,11 @@ import { useResetAtom } from "jotai/utils";
 import { getHotkeyHandler, useHotkeys } from "@mantine/hooks";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
 import ReactFocusLock from "react-focus-lock";
-import { Settings } from "./components/Settings";
+import { type Config, Settings } from "./components/Settings";
 import { Commands, type CommandType } from "./components/Command";
 import { Alias } from "./components/Alias";
 import { Calculator, solve } from "./components/Calculator";
+import { performSearch } from "./functions/search";
 
 export function App() {
 	const [search, setSearch] = useAtom(searchAtom);
@@ -21,7 +22,7 @@ export function App() {
 	const [index, setIndex] = useAtom(indexAtom);
 	const resetIndex = useResetAtom(indexAtom);
 
-	const { configs: settings, init } = useConfigs();
+	const { configs, init } = useConfigs();
 	const [showSettings, setShowSettings] = useState(false);
 
 	const reset = useCallback(
@@ -55,10 +56,21 @@ export function App() {
 	}
 
 	const apps = useApps();
-	const fuse = new Fuse(apps, {
-		keys: ["name"],
-	});
-	const results = fuse.search(search);
+	const things: Config[] = apps
+		.map((app) => {
+			const config = configs.find((c) => c.path === app.path);
+			if (config) return config;
+			if (!app.path) return;
+			return {
+				id: app.path,
+				name: app.name,
+				path: app.path,
+				aliases: [],
+				hotkeys: [],
+			};
+		})
+		.filter(Boolean);
+	const results = performSearch(search, things);
 	const showResults = results.length > 0;
 
 	const current = results[index] as (typeof results)[number] | undefined;
@@ -165,7 +177,7 @@ export function App() {
 						data={results}
 						itemContent={(i, result) => {
 							const { item } = result;
-							const config = settings.find((c) => c.id === item.path);
+							const config = item;
 							const itemShortcut: CommandType = {
 								modifiers: config?.hotkeys[0]?.modifiers ?? [],
 								keyboard_key: config?.hotkeys[0]?.keyboard_key ?? "",
