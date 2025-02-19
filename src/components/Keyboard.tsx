@@ -18,7 +18,7 @@ export const codeToLabel = {
 	Space: "Space",
 	Backspace: "⌫",
 	Enter: "↵",
-	Escape: "Esc",
+	Escape: "esc",
 
 	// Shift
 	ShiftLeft: "⇧",
@@ -175,7 +175,7 @@ export function KeyboardBase({
 			)}
 			{...props}
 		>
-			{typeof children === "string" ? children.toUpperCase() : children}
+			{typeof children === "string" ? children : children}
 		</kbd>
 	);
 }

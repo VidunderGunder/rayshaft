@@ -8,6 +8,8 @@ import {
 	isHotkeyModifier,
 	isHotkeyKey,
 	hotkeyModifierWebToMantine,
+	type SafeHotkey,
+	sortSafeModifiers,
 } from "@/types/keyboard";
 import {
 	type ReactNode,

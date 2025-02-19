@@ -197,8 +197,8 @@ export function Settings({
 								commands={[
 									{
 										label: mode === "removeHotkey" ? "Done" : "Remove",
-										modifiers: ["Shift"],
-										keyboard_key: "KeyH",
+										modifiers: mode === "removeHotkey" ? [] : ["Shift"],
+										keyboard_key: mode === "removeHotkey" ? "Escape" : "KeyH",
 										disabled: disableRemoveHotkey || !open,
 										handler(e) {
 											e.preventDefault();
@@ -285,8 +285,8 @@ export function Settings({
 								commands={[
 									{
 										disabled: disableRemoveAlias || !open,
-										modifiers: ["Shift"],
-										keyboard_key: "KeyA",
+										modifiers: mode === "removeAlias" ? [] : ["Shift"],
+										keyboard_key: mode === "removeAlias" ? "Escape" : "KeyA",
 										label: mode === "removeAlias" ? "Done" : "Remove",
 										handler(e) {
 											e.preventDefault();

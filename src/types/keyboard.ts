@@ -289,3 +289,17 @@ export function getSafeHotkeyString(hotkey: Hotkey): string | undefined {
 		hotkeyKeyWebToPlugin[safeHotkey.keyboard_key],
 	].join("+");
 }
+
+// type SafeHotkeyModifier = ("Shift" | "Control" | "Alt" | "Meta")
+export function sortSafeModifiers(
+	modifiers: SafeHotkeyModifier[],
+): SafeHotkeyModifier[] {
+	const modifierOrder: Record<SafeHotkeyModifier, number> = {
+		Shift: 0,
+		Control: 1,
+		Alt: 2,
+		Meta: 3,
+	};
+
+	return modifiers.slice().sort((a, b) => modifierOrder[a] - modifierOrder[b]);
+}
