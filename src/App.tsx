@@ -157,7 +157,7 @@ export function App() {
 						)}
 					/>
 				</ReactFocusLock>
-				<div className="rounded-b-2xl bg-gray-900/90 text-white backdrop-blur-sm">
+				<div className="overflow-clip rounded-b-2xl bg-gray-900/90 text-white backdrop-blur-sm">
 					<Calculator className="px-3.5 py-3" output={calc} />
 					{showResults && (
 						<Virtuoso
