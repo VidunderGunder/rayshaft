@@ -4,8 +4,18 @@ import {
 	type KeyboardKey,
 	hotkeyModifiers,
 	hotkeyKeys,
+	hotkeyKeyWebToMantine,
+	isHotkeyModifier,
+	isHotkeyKey,
+	hotkeyModifierWebToMantine,
 } from "@/types/keyboard";
-import { type ReactNode, type ComponentProps, Fragment, useState } from "react";
+import {
+	type ReactNode,
+	type ComponentProps,
+	Fragment,
+	useState,
+	useEffect,
+} from "react";
 import {
 	getLabelFromCode,
 	Keyboard,
@@ -15,7 +25,9 @@ import {
 	useModifiers,
 } from "./Keyboard";
 import { Separator } from "./shadcn/separator";
-import { useHotkeys } from "@mantine/hooks";
+import { type HotkeyItem, useHotkeys } from "@mantine/hooks";
+import { disableEscapeAtom } from "@/jotai";
+import { useSetAtom } from "jotai";
 
 export type Hotkey = {
 	modifiers: Modifier[];
@@ -38,6 +50,7 @@ export function isEqualHotkey(a: Hotkey, b: Hotkey): boolean {
 export type CommandType = Hotkey & {
 	label: ReactNode;
 	disabled?: boolean;
+	handler?: (event: KeyboardEvent) => void;
 };
 
 export type CommandProps = {
@@ -50,10 +63,27 @@ export function Command({
 	className,
 	modifiers,
 	keyboard_key,
+	handler,
 	label,
 	...props
 }: CommandProps) {
 	const { Alt, Control, Meta, Shift } = useModifiers();
+
+	const setDisableEscape = useSetAtom(disableEscapeAtom);
+	const isEscape = keyboard_key === "Escape";
+
+	useEffect(() => {
+		if (isEscape) {
+			if (disabled) {
+				setDisableEscape(false);
+			} else {
+				setDisableEscape(true);
+			}
+			return () => {
+				setDisableEscape(false);
+			};
+		}
+	}, [disabled, setDisableEscape, isEscape]);
 
 	let irrelevant = disabled;
 
@@ -72,6 +102,34 @@ export function Command({
 	if (!irrelevant && Shift && !modifiers.includes("Shift")) {
 		irrelevant = true;
 	}
+
+	const isLikelyValidHotkey =
+		modifiers.length > 0
+			? !modifiers.some((m) => !isHotkeyModifier(m)) &&
+				isHotkeyKey(keyboard_key)
+			: typeof keyboard_key === "string";
+
+	const hotkeyItems: HotkeyItem[] =
+		!disabled && handler && isLikelyValidHotkey
+			? [
+					[
+						[
+							...modifiers
+								.map((m) => {
+									if (!isHotkeyModifier(m)) return;
+									return hotkeyModifierWebToMantine[m];
+								})
+								.filter(Boolean),
+							isHotkeyKey(keyboard_key)
+								? hotkeyKeyWebToMantine[keyboard_key]
+								: keyboard_key,
+						].join("+"),
+						handler,
+					],
+				]
+			: [];
+
+	useHotkeys(hotkeyItems, []);
 
 	return (
 		<div

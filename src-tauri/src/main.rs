@@ -24,7 +24,6 @@ pub struct AppState {
 }
 
 fn main() {
-    println!("Hello, World!");
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             installed_apps::list_installed_apps,

@@ -36,6 +36,7 @@ export type SettingsProps = {
 	configVariant: ConfigVariant;
 	configName: string;
 	configPath?: string;
+	onClose?: () => void;
 } & Omit<ComponentProps<"div">, "children">;
 
 type Mode = "addHotkey" | "addAlias" | "removeHotkey" | "removeAlias" | null;
@@ -43,6 +44,7 @@ type Mode = "addHotkey" | "addAlias" | "removeHotkey" | "removeAlias" | null;
 export function Settings({
 	className,
 	open = false,
+	onClose,
 	configId,
 	configName,
 	configVariant,
@@ -64,7 +66,7 @@ export function Settings({
 	const [showConfim, setShowConfirm] = useState(false);
 	const [alias, setAlias] = useState("");
 
-	const onClose = useCallback(() => {
+	const handleClose = useCallback(() => {
 		setMode(null);
 		setAlias("");
 		setShowConfirm(false);
@@ -128,10 +130,8 @@ export function Settings({
 	}
 
 	useEffect(() => {
-		if (!open) {
-			onClose();
-		}
-	}, [open, onClose]);
+		if (!open) handleClose();
+	}, [open, handleClose]);
 
 	useEffect(() => {
 		if (mode === null) {
@@ -143,19 +143,7 @@ export function Settings({
 
 	return (
 		<>
-			{open && (
-				<SettingsHotkeys
-					open={open}
-					disableAddHotkey={disableAddHotkey}
-					mode={mode}
-					setMode={setMode}
-					disableAddAlias={disableAddAlias}
-					disableRemoveHotkey={disableRemoveHotkey}
-					disableRemoveAlias={disableRemoveAlias}
-					setShowConfirm={setShowConfirm}
-					remove={remove}
-				/>
-			)}
+			{open && <SettingsHotkeys remove={remove} />}
 			<ReactFocusLock
 				disabled={!open}
 				className={cn(
@@ -177,14 +165,23 @@ export function Settings({
 							<Commands
 								commands={[
 									{
-										modifiers: ["Meta"],
+										modifiers: [],
 										keyboard_key: "KeyR",
 										label: "Reset",
+										disabled: !open || mode !== null,
+										handler() {
+											if (!open) return;
+											setShowConfirm(true);
+										},
 									},
 									{
-										modifiers: ["Meta"],
-										keyboard_key: "KeyK",
+										modifiers: [],
+										keyboard_key: "Escape",
 										label: "Close",
+										disabled: !open || mode !== null,
+										handler() {
+											onClose?.();
+										},
 									},
 								]}
 							/>
@@ -199,17 +196,40 @@ export function Settings({
 							<Commands
 								commands={[
 									{
-										disabled: disableRemoveHotkey,
-										modifiers: ["Shift", "Meta"],
-										keyboard_key: "KeyT",
 										label: mode === "removeHotkey" ? "Done" : "Remove",
+										modifiers: ["Shift"],
+										keyboard_key: "KeyH",
+										disabled: disableRemoveHotkey || !open,
+										handler(e) {
+											e.preventDefault();
+											if (mode === "removeHotkey") {
+												setMode(null);
+												return;
+											}
+											setMode("removeHotkey");
+										},
 									},
-									{
-										disabled: disableAddHotkey,
-										modifiers: ["Meta"],
-										keyboard_key: "KeyT",
-										label: mode === "addHotkey" ? "Abort" : "Add",
-									},
+									mode === "addHotkey"
+										? {
+												label: "Abort",
+												modifiers: [],
+												keyboard_key: "Escape",
+												disabled: disableAddHotkey || !open,
+												handler(e) {
+													e.preventDefault();
+													setMode(null);
+												},
+											}
+										: {
+												label: "Add",
+												modifiers: [],
+												keyboard_key: "KeyH",
+												disabled: disableAddHotkey || !open,
+												handler(e) {
+													e.preventDefault();
+													setMode("addHotkey");
+												},
+											},
 								]}
 							/>
 						</div>
@@ -231,7 +251,7 @@ export function Settings({
 													<span className="relative top-[1px]">{i + 1}</span>
 												</button>
 											)}
-											<Command {...hotkey} label={null} />
+											<Command {...hotkey} label={null} disabled={!open} />
 										</div>
 									);
 								})
@@ -264,17 +284,40 @@ export function Settings({
 							<Commands
 								commands={[
 									{
-										disabled: disableRemoveAlias,
-										modifiers: ["Shift", "Meta"],
-										keyboard_key: "KeyL",
+										disabled: disableRemoveAlias || !open,
+										modifiers: ["Shift"],
+										keyboard_key: "KeyA",
 										label: mode === "removeAlias" ? "Done" : "Remove",
+										handler(e) {
+											e.preventDefault();
+											if (mode === "removeAlias") {
+												setMode(null);
+												return;
+											}
+											setMode("removeAlias");
+										},
 									},
-									{
-										disabled: disableAddAlias,
-										modifiers: ["Meta"],
-										keyboard_key: "KeyL",
-										label: mode === "addAlias" ? "Abort" : "Add",
-									},
+									mode === "addAlias"
+										? {
+												disabled: disableAddAlias || !open,
+												modifiers: [],
+												keyboard_key: "Escape",
+												label: "Abort",
+												handler(e) {
+													e.preventDefault();
+													setMode(null);
+												},
+											}
+										: {
+												disabled: disableAddAlias || !open,
+												modifiers: [],
+												keyboard_key: "KeyA",
+												label: "Add",
+												handler(e) {
+													e.preventDefault();
+													setMode("addAlias");
+												},
+											},
 								]}
 							/>
 						</div>
@@ -325,7 +368,12 @@ export function Settings({
 										])}
 										placeholder="alias"
 									/>
-									<Command modifiers={[]} keyboard_key="Enter" label={"Save"} />
+									<Command
+										modifiers={[]}
+										keyboard_key="Enter"
+										label={alias === "" ? "Abort" : "Save"}
+										disabled={!open}
+									/>
 								</ReactFocusLock>
 							)}
 						</div>
@@ -335,100 +383,14 @@ export function Settings({
 		</>
 	);
 }
+
 function SettingsHotkeys({
-	open,
-	disableAddHotkey,
-	mode,
-	setMode,
-	disableAddAlias,
-	disableRemoveHotkey,
-	disableRemoveAlias,
-	setShowConfirm,
 	remove,
 }: {
-	open: boolean;
-	disableAddHotkey: boolean;
-	mode: string | null;
-	setMode: Dispatch<React.SetStateAction<Mode>>;
-	disableAddAlias: boolean;
-	disableRemoveHotkey: boolean;
-	disableRemoveAlias: boolean;
-	setShowConfirm: Dispatch<React.SetStateAction<boolean>>;
 	remove: (i: number) => void;
 }) {
 	useHotkeys(
 		[
-			[
-				// Add hotkey
-				"mod+T",
-				(e) => {
-					if (!open) return;
-					if (disableAddHotkey) return;
-					e.preventDefault();
-					if (mode === "addHotkey") {
-						setMode(null);
-						return;
-					}
-					setMode("addHotkey");
-				},
-			],
-			[
-				// Add alias
-				"mod+L",
-				(e) => {
-					if (!open) return;
-					if (disableAddAlias) return;
-					e.preventDefault();
-					if (mode === "addAlias") {
-						setMode(null);
-						return;
-					}
-					setMode("addAlias");
-				},
-			],
-			[
-				// Remove hotkey
-				"mod+shift+T",
-				(e) => {
-					if (!open) return;
-					if (disableRemoveHotkey) return;
-					e.preventDefault();
-					if (mode === "removeHotkey") {
-						setMode(null);
-						return;
-					}
-					setMode("removeHotkey");
-				},
-			],
-			[
-				// Remove alias
-				"mod+shift+L",
-				(e) => {
-					if (!open) return;
-					if (disableRemoveAlias) return;
-					e.preventDefault();
-					if (mode === "removeAlias") {
-						setMode(null);
-						return;
-					}
-					setMode("removeAlias");
-				},
-			],
-			[
-				// Close
-				"mod+K",
-				() => {
-					if (!open) return;
-				},
-			],
-			[
-				// Reset
-				"mod+R",
-				() => {
-					if (!open) return;
-					setShowConfirm(true);
-				},
-			],
 			["Digit1", () => remove(0)],
 			["Digit2", () => remove(1)],
 			["Digit3", () => remove(2)],

@@ -1,5 +1,5 @@
 import { atomWithStorage } from "jotai/utils";
-import type { Config, ConfigVariant } from "./components/Settings";
+import type { Config } from "./components/Settings";
 import { withImmer } from "jotai-immer";
 import { useAtom } from "jotai";
 import { isEqualHotkey, type Hotkey } from "./components/Command";
@@ -26,6 +26,7 @@ import { getSafeHotkey, getSafeHotkeyString } from "./types/keyboard";
 
 export const searchAtom = atomWithStorage("search", "");
 export const indexAtom = atomWithStorage("index", 0);
+export const disableEscapeAtom = atomWithStorage("disable-escape", false);
 
 /**
 

@@ -87,61 +87,64 @@ pub fn list_installed_apps() -> Result<Vec<AppInfo>, String> {
     Ok(apps)
 }
 
-/// Launch an app given its full path.
-/// On macOS, the "open" command can be used.
 #[tauri::command]
 pub fn toggle_app(app_path: String) -> Result<(), String> {
-    // Verify the provided app path exists.
-    let path = Path::new(&app_path);
-    if !path.exists() {
-        return Err(format!("App path does not exist: {}", app_path));
-    }
+    //     // Verify the provided app path exists.
+    //     let path = Path::new(&app_path);
+    //     if !path.exists() {
+    //         return Err(format!("App path does not exist: {}", app_path));
+    //     }
 
-    // Extract the app name (e.g., "Safari" from "/Applications/Safari.app")
-    let app_name = path
-        .file_stem()
-        .and_then(|s| s.to_str())
-        .ok_or_else(|| "Could not determine app name from path".to_string())?;
+    //     // Extract the app name (e.g., "Safari" from "/Applications/Safari.app")
+    //     let app_name = path
+    //         .file_stem()
+    //         .and_then(|s| s.to_str())
+    //         .ok_or_else(|| "Could not determine app name from path".to_string())?;
 
-    // App toggle: https://brettterpstra.com/2011/01/22/quick-tip-applescript-application-toggle/
-    let apple_script = format!(
-        r#"
-on run argv
-    if (count of argv) < 1 then
-        error "Missing argument: appName"
-    end if
+    //     // App toggle: https://brettterpstra.com/2011/01/22/quick-tip-applescript-application-toggle/
+    //     let apple_script = format!(
+    //         r#"
+    // on run argv
+    //     if (count of argv) < 1 then
+    //         error "Missing argument: appName"
+    //     end if
 
-    set appName to item 1 of argv
+    //     set appName to item 1 of argv
 
-    set startIt to false
-    tell application "System Events"
-        if not (exists process appName) then
-            set startIt to true
-        else if frontmost of process appName then
-            set visible of process appName to false
-        else
-            set frontmost of process appName to true
-        end if
-    end tell
-    if startIt then
-        tell application appName to activate
-    end if
-end run
-        "#,
-    );
+    //     set startIt to false
+    //     tell application "System Events"
+    //         if not (exists process appName) then
+    //             set startIt to true
+    //         else if frontmost of process appName then
+    //             set visible of process appName to false
+    //         else
+    //             set frontmost of process appName to true
+    //         end if
+    //     end tell
+    //     if startIt then
+    //         tell application appName to activate
+    //     end if
+    // end run
+    //         "#,
+    //     );
 
-    // Execute the AppleScript using `osascript`
-    let output = Command::new("osascript")
-        .arg("-e")
-        .arg(apple_script)
-        .arg(&app_name)
-        .output()
-        .map_err(|e| format!("Failed to run AppleScript: {}", e))?;
+    //     // Execute the AppleScript using `osascript`
+    //     let output = Command::new("osascript")
+    //         .arg("-e")
+    //         .arg(apple_script)
+    //         .arg(&app_name)
+    //         .output()
+    //         .map_err(|e| format!("Failed to run AppleScript: {}", e))?;
 
-    if !output.status.success() {
-        let err_msg = String::from_utf8_lossy(&output.stderr);
-        return Err(format!("AppleScript execution failed: {}", err_msg));
-    }
+    //     if !output.status.success() {
+    //         let err_msg = String::from_utf8_lossy(&output.stderr);
+    //         return Err(format!("AppleScript execution failed: {}", err_msg));
+    //     }
 
+    //     Ok(())
+    Command::new("open")
+        .arg(app_path)
+        .spawn()
+        .map_err(|e| format!("Failed to launch app: {}", e))?;
     Ok(())
 }
