@@ -89,9 +89,10 @@ export type KeyboardKey = StringWithSuggestions<
 	| "F10"
 	| "F11"
 	| "F12"
-	// Punctuation and symbol keys (US layout)
+	// Punctuation and symbol keys
 	| "Grave" // `
 	| "Minus" // -
+	| "Plus" // +
 	| "Equal" // =
 	| "BracketLeft" // [
 	| "BracketRight" // ]
@@ -217,7 +218,8 @@ export const hotkeyKeyWebToMantine = {
 	Digit7: "7",
 	Digit8: "8",
 	Digit9: "9",
-} as const satisfies Record<SafeHotkeyKey, string>;
+} as const satisfies Partial<Record<KeyboardKey, string>> &
+	Record<SafeHotkeyKey, string>;
 
 export const hotkeyKeyWebToPlugin = {
 	KeyA: "A",
@@ -258,7 +260,7 @@ export const hotkeyKeyWebToPlugin = {
 	Digit9: "9",
 } as const satisfies Record<SafeHotkeyKey, string>;
 
-export function isHotkeyKey(
+export function isSafeHotkeyKey(
 	keyboard_key: string,
 ): keyboard_key is SafeHotkeyKey {
 	return (hotkeyKeys as string[]).includes(keyboard_key);
@@ -267,7 +269,7 @@ export function isHotkeyKey(
 export function getSafeHotkeyKey(
 	keyboard_key: string,
 ): SafeHotkeyKey | undefined {
-	if (!isHotkeyKey(keyboard_key)) return;
+	if (!isSafeHotkeyKey(keyboard_key)) return;
 	return keyboard_key;
 }
 
@@ -275,7 +277,7 @@ export function getSafeHotkey(hotkey: Hotkey): SafeHotkey | undefined {
 	for (const modifier of hotkey.modifiers) {
 		if (!isHotkeyModifier(modifier)) return;
 	}
-	if (!isHotkeyKey(hotkey.keyboard_key)) return;
+	if (!isSafeHotkeyKey(hotkey.keyboard_key)) return;
 	return hotkey as SafeHotkey;
 }
 

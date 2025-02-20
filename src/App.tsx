@@ -125,7 +125,7 @@ export function App() {
 
 	return (
 		<>
-			<AppHotkeys toggleSettings={toggleSettings} close={close} />
+			<AppHotkeys close={close} />
 			<div className="relative flex size-full max-h-full flex-col items-stretch justify-start overflow-hidden">
 				<ReactFocusLock className="relative flex items-center">
 					<input
@@ -184,9 +184,14 @@ export function App() {
 								const commands: CommandType[] = [];
 								if (isFocused)
 									commands.push({
-										keyboard_key: "KeyK",
-										modifiers: ["Meta"],
+										keyboard_key: ",",
+										modifiers: [],
 										label: "Config",
+										handler(e) {
+											if (showSettings) return;
+											e.preventDefault();
+											toggleSettings();
+										},
 									});
 								if (isShortcut) commands.push(itemShortcut);
 								return (
@@ -248,15 +253,13 @@ function previous(i: number, length: number) {
 }
 
 function AppHotkeys({
-	toggleSettings,
 	close,
 }: {
-	toggleSettings: () => void;
 	close: () => void;
 }) {
 	const disableEscape = useAtomValue(disableEscapeAtom);
 
-	const hotkeyItems: HotkeyItem[] = [["Mod+K", toggleSettings]];
+	const hotkeyItems: HotkeyItem[] = [];
 
 	if (!disableEscape) hotkeyItems.push(["Escape", close]);
 

@@ -45,7 +45,20 @@ export const codeToLabel = {
 	ArrowDown: "▼",
 	ArrowLeft: "◄",
 	ArrowRight: "►",
-} as const satisfies Record<string, React.ReactNode>;
+
+	Grave: "`",
+	Minus: "-",
+	Plus: "+",
+	Equal: "=",
+	BracketLeft: "[",
+	BracketRight: "]",
+	Backslash: "\\",
+	Semicolon: ";",
+	Quote: "'",
+	Comma: ",",
+	Period: ".",
+	Slash: "/",
+} as const satisfies Partial<Record<KeyboardKey | Modifier, React.ReactNode>>;
 
 export function getLabelFromCode(code?: string) {
 	if (!code) return code;

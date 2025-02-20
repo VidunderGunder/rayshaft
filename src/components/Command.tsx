@@ -6,7 +6,7 @@ import {
 	hotkeyKeys,
 	hotkeyKeyWebToMantine,
 	isHotkeyModifier,
-	isHotkeyKey,
+	isSafeHotkeyKey,
 	hotkeyModifierWebToMantine,
 	type SafeHotkey,
 	sortSafeModifiers,
@@ -108,8 +108,11 @@ export function Command({
 	const isLikelyValidHotkey =
 		modifiers.length > 0
 			? !modifiers.some((m) => !isHotkeyModifier(m)) &&
-				isHotkeyKey(keyboard_key)
+				isSafeHotkeyKey(keyboard_key)
 			: typeof keyboard_key === "string";
+
+	if (keyboard_key === "Comma")
+		console.log("Comma is likely valid: ", isLikelyValidHotkey);
 
 	const hotkeyItems: HotkeyItem[] =
 		!disabled && handler && isLikelyValidHotkey
@@ -122,7 +125,7 @@ export function Command({
 									return hotkeyModifierWebToMantine[m];
 								})
 								.filter(Boolean),
-							isHotkeyKey(keyboard_key)
+							isSafeHotkeyKey(keyboard_key)
 								? hotkeyKeyWebToMantine[keyboard_key]
 								: keyboard_key,
 						].join("+"),
